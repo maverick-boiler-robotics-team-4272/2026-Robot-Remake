@@ -16,9 +16,14 @@ import frc.robot.drive.VisionConstants;
 import frc.robot.drive.VisionIO;
 import frc.robot.drive.VisionIOPhotonVision;
 import frc.robot.drive.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.IntakeIO;
+import frc.robot.subsystems.IntakeIOReal;
+import frc.robot.subsystems.IntakeIOSim;
 
 public class RobotContainer {
   Drive drive;
+  Intake intake;
   SwerveIOCTRE realIO = null;
   public static final CommandXboxController joystick = new CommandXboxController(0);
   public RobotContainer() {
@@ -26,12 +31,15 @@ public class RobotContainer {
       case REAL:
         realIO = new SwerveIOCTRE();
         drive = new Drive(realIO, new VisionIOPhotonVision("Limelight", VisionConstants.robotToCamera0));
+        intake = new Intake(new IntakeIOReal());
         break;
       case SIM :
         drive = new Drive(new SwerveIOSim(),  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
-    
+        intake = new Intake(new IntakeIOSim());
+        break;
       default:
         drive = new Drive(new SwerveIO() {}, new VisionIO() {});
+        intake = new Intake(new IntakeIO() {});
         break;
     }
     configureBindings();

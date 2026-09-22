@@ -42,4 +42,20 @@ public class SubsystemConstants {
             PhoenixUtil.regulateModuleConstantForSimulation(TunerConstants.BackRight)
         };
     }
+
+ public static class HoppahConstants {
+        public static final double BELT_GEARING = 1.0;
+        public static final double BELT_KP = 5;
+        public static final double BELT_KD = 0.0;
+        public static final double BELT_KS = 0.4;
+        public static final double BELT_KV = 0.1243 * BELT_GEARING;
+        public static final boolean BELT_INVERTED = true;
+    
+        public static final double FEEDER_GEARING = 348.0 * 24.0 / (16.0 * 11.0);
+        public static final double FEEDER_KP = 300;
+        public static final double FEEDER_KD = 0.0;
+        public static final double FEEDER_KS = 0.4;
+        public static final double FEEDER_KV = 0.1243 * FEEDER_GEARING;
+        public static final boolean FEEDER_INVERTED = true;
+    }
 }

@@ -1,5 +1,7 @@
 package frc.robot.hopper;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -13,36 +15,38 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.Follower;
 
+import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 
 public class HoppahIOReal implements HoppahIO {
-   private static final int motorLeftID = 0;
-   private static final int motorRightID = 0;
-   private static final int motorBLID = 0;  //🙏🙏🙏
+   private static final int motorLID = 0;
+   private static final int motorRID = 0;
+   private static final int motorBLID = 0;  
    private static final int motorBRID = 0;
 
 
-   protected final TalonFX motorLeft;
-   protected final TalonFX motorRight;
+   protected final TalonFX motorL;
+   protected final TalonFX motorR;
    protected final TalonFX motorBL;
    protected final TalonFX motorBR;
 
    //control requests
 
-    protected final StatusSignal<Current> motorLeftStatorCurrent;
-    protected final StatusSignal<Current> motorLeftSupplyCurrent;
-    protected final StatusSignal<AngularVelocity> motorLeftVelocityRPS;
-    protected final StatusSignal<Voltage> motorLeftSupplyVoltage;
-    protected final StatusSignal<Voltage> motorLeftOutputVolts;
+    protected final StatusSignal<Current> motorLStatorCurrent;
+    protected final StatusSignal<Current> motorLSupplyCurrent;
+    protected final StatusSignal<AngularVelocity> motorLVelocityRPS;
+    protected final StatusSignal<Voltage> motorLSupplyVoltage;
+    protected final StatusSignal<Voltage> motorLOutputVolts;
 
-    protected final StatusSignal<Current> motorRightStatorCurrent;
-    protected final StatusSignal<Current> motorRightSupplyCurrent;
-    protected final StatusSignal<AngularVelocity> motorRightVelocityRPS;
-    protected final StatusSignal<Voltage> motorRightSupplyVoltage;
-    protected final StatusSignal<Voltage> motorRightOutputVolts;
+    protected final StatusSignal<Current> motorRStatorCurrent;
+    protected final StatusSignal<Current> motorRSupplyCurrent;
+    protected final StatusSignal<AngularVelocity> motorRVelocityRPS;
+    protected final StatusSignal<Voltage> motorRSupplyVoltage;
+    protected final StatusSignal<Voltage> motorROutputVolts;
 
     protected final StatusSignal<Current> motorBLStatorCurrent;
     protected final StatusSignal<Current> motorBLSupplyCurrent;
@@ -56,20 +60,16 @@ public class HoppahIOReal implements HoppahIO {
     protected final StatusSignal<Voltage> motorBRSupplyVoltage;
     protected final StatusSignal<Voltage> motorBROutputVolts;
 
-    private final Debouncer motorLeftIsConnected = new Debouncer(0.5);
-    private final Debouncer motorRightIsConnected = new Debouncer(0.5);
+    private final Debouncer motorLIsConnected = new Debouncer(0.5);
+    private final Debouncer motorRIsConnected = new Debouncer(0.5);
     private final Debouncer motorBLIsConnected = new Debouncer(0.5);
     private final Debouncer motorBRIsConnected = new Debouncer(0.5);
 
     public HoppahIOReal() {
-        motorLeft = new TalonFX(motorLeftID);
-        motorRight = new TalonFX(motorRightID);
+        motorL = new TalonFX(motorLID);
+        motorR = new TalonFX(motorRID);
         motorBL = new TalonFX(motorBLID);
         motorBR = new TalonFX(motorBRID);
-
-        final DutyCycleOut m_request = new DutyCycleOut(0);
-
-        motorRight.setControl(new Follower(motorLeft.getDeviceID(), MotorAlignmentValue.Aligned));
 
          Slot0Configs beltSlot0Configs = new Slot0Configs()
             .withKP(BELT_KP)
@@ -107,12 +107,111 @@ public class HoppahIOReal implements HoppahIO {
             feederConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
-        motorLeft.getConfigurator().apply(beltConfig);
-        motorRight.getConfigurator().apply(beltConfig);
+        motorL.getConfigurator().apply(beltConfig);
+        motorR.getConfigurator().apply(beltConfig);
         motorBL.getConfigurator().apply(feederConfig);
         motorBR.getConfigurator().apply(feederConfig);
-        motorHood.setPosition(0);
+
+        motorBLStatorCurrent = motorBL.getStatorCurrent();
+        motorBLSupplyCurrent = motorBL.getSupplyCurrent();
+        motorBLVelocityRPS = motorBL.getVelocity();
+        motorBLSupplyVoltage = motorBL.getSupplyVoltage();
+       
+        motorBRStatorCurrent = motorBR.getStatorCurrent();
+        motorBRSupplyCurrent = motorBR.getSupplyCurrent();
+        motorBRVelocityRPS = motorBR.getVelocity();
+        motorBRSupplyVoltage = motorBR.getSupplyVoltage();
+        
+        motorLStatorCurrent = motorL.getStatorCurrent();
+        motorLSupplyCurrent = motorL.getSupplyCurrent();
+        motorLVelocityRPS = motorL.getVelocity();
+        motorLSupplyVoltage = motorL.getSupplyVoltage();
+        
+        motorRStatorCurrent = motorR.getStatorCurrent();
+        motorRSupplyCurrent = motorR.getSupplyCurrent();
+        motorRVelocityRPS = motorR.getVelocity();
+        motorRSupplyVoltage = motorR.getSupplyVoltage();
+
+        BaseStatusSignal.setUpdateFrequencyForAll(
+        50,
+        motorBLStatorCurrent,
+        motorBLSupplyCurrent,
+        motorBLVelocityRPS,
+        motorBLSupplyVoltage,
+        motorBRStatorCurrent,
+        motorBRSupplyCurrent,
+        motorBRVelocityRPS,
+        motorBRSupplyVoltage,
+        motorLStatorCurrent,
+        motorLSupplyCurrent,
+        motorLVelocityRPS,
+        motorLSupplyVoltage,
+        motorRStatorCurrent,
+        motorRSupplyCurrent,
+        motorRVelocityRPS,
+        motorRSupplyVoltage);
+
+        
+        final DutyCycleOut m_request = new DutyCycleOut(0);
+
+        motorR.setControl(new Follower(motorL.getDeviceID(), MotorAlignmentValue.Aligned));
+        motorBR.setControl(new Follower(motorBL.getDeviceID(), MotorAlignmentValue.Aligned));
     }
     
+    public void updateInputs(HoppahIOInputs inputs) {
+        StatusCode motorLStatus = BaseStatusSignal.refreshAll(
+        motorLStatorCurrent,
+        motorLSupplyCurrent,
+        motorLVelocityRPS,
+        motorLSupplyVoltage);
+
+        StatusCode motorRStatus = BaseStatusSignal.refreshAll(
+        motorRStatorCurrent,
+        motorRSupplyCurrent,
+        motorRVelocityRPS,
+        motorRSupplyVoltage);
+
+        StatusCode motorBLStatus = BaseStatusSignal.refreshAll(
+        motorBLStatorCurrent,
+        motorBLSupplyCurrent,
+        motorBLVelocityRPS,
+        motorBLSupplyVoltage);
+
+        StatusCode motorBRStatus = BaseStatusSignal.refreshAll(
+        motorBRStatorCurrent,
+        motorBRSupplyCurrent,
+        motorBRVelocityRPS,
+        motorBRSupplyVoltage);
+
+
+        inputs.motorLIsConnected = motorLIsConnected.calculate(motorLStatus.isOK());
+        inputs.motorLStatorCurrent = motorLStatorCurrent.getValueAsDouble();
+        inputs.motorLSupplyCurrent  = motorLSupplyCurrent.getValueAsDouble();
+        inputs.motorLVelocityRPS = motorLVelocityRPS.getValueAsDouble();
+        inputs.motorLSupplyVoltage = motorLSupplyVoltage.getValueAsDouble();
+
+        inputs.motorRIsConnected = motorRIsConnected.calculate(motorRStatus.isOK());
+        inputs.motorRStatorCurrent = motorRStatorCurrent.getValueAsDouble();
+        inputs.motorRSupplyCurrent  = motorRSupplyCurrent.getValueAsDouble();
+        inputs.motorRVelocityRPS = motorRVelocityRPS.getValueAsDouble();
+        inputs.motorRSupplyVoltage = motorRSupplyVoltage.getValueAsDouble();
+        
+        inputs.motorBLIsConnected = motorBLIsConnected.calculate(motorBLStatus.isOK());
+        inputs.motorBLStatorCurrent = motorBLStatorCurrent.getValueAsDouble();
+        inputs.motorBLSupplyCurrent  = motorBLSupplyCurrent.getValueAsDouble();
+        inputs.motorBLVelocityRPS = motorBLVelocityRPS.getValueAsDouble();
+        inputs.motorBLSupplyVoltage = motorBLSupplyVoltage.getValueAsDouble();
+
+        inputs.motorBRIsConnected = motorBRIsConnected.calculate(motorBRStatus.isOK());
+        inputs.motorBRStatorCurrent = motorBRStatorCurrent.getValueAsDouble();
+        inputs.motorBRSupplyCurrent  = motorBRSupplyCurrent.getValueAsDouble();
+        inputs.motorBRVelocityRPS = motorBRVelocityRPS.getValueAsDouble();
+        inputs.motorBRSupplyVoltage = motorBRSupplyVoltage.getValueAsDouble();
+    }
+    
+    public void setHoppahState(double bottomSpin, double topSpin) {
+        motorBL.setVoltage(bottomSpin);
+        motorL.setVoltage(topSpin);
+    }
 }
    

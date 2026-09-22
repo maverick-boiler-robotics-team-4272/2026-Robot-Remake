@@ -47,7 +47,9 @@ public class RobotContainer {
 
   private void configureBindings() {
     drive.setDefaultCommand(drive.joystickDrive(joystick::getLeftX, joystick::getLeftY, joystick::getRightX));
-    joystick.b().onTrue(drive.runOnce(realIO::seedFieldCentric));
+    if (realIO != null) {
+      joystick.b().onTrue(drive.runOnce(realIO::seedFieldCentric));
+    }
   }
 
   public Command getAutonomousCommand() {

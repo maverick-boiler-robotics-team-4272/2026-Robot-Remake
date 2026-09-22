@@ -137,7 +137,10 @@ public class Navgrid {
 
             // get the rotation from the x and y component
             if(wallAdjacent) {
-                victors[i] = new Pose2d(nodes[i], new Rotation2d(x, y));
+                // opposite walls (e.g. a corridor) can cancel out to a zero vector, which
+                // Rotation2d(x, y) can't convert to an angle, so fall back to a default rotation
+                Rotation2d rotation = (x == 0.0 && y == 0.0) ? blueForward : new Rotation2d(x, y);
+                victors[i] = new Pose2d(nodes[i], rotation);
                 resolved[i] = true;
                 continue;
             }
@@ -238,7 +241,10 @@ public class Navgrid {
 
                     // get the rotation from the x and y component
                     if(emptySquare) {
-                        victors[i] = new Pose2d(nodes[i], new Rotation2d(x, y));
+                        // opposite empty squares (e.g. a corridor) can cancel out to a zero vector,
+                        // which Rotation2d(x, y) can't convert to an angle, so fall back to a default
+                        Rotation2d rotation = (x == 0.0 && y == 0.0) ? Rotation2d.kZero : new Rotation2d(x, y);
+                        victors[i] = new Pose2d(nodes[i], rotation);
                         newEmpty.add(victors[i]);
                         resolved[i] = true;
                         anyResolutions = true;

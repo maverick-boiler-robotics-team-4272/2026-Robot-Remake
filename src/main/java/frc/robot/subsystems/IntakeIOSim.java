@@ -73,7 +73,6 @@ public class IntakeIOSim implements IntakeIO {
         inputs.pivotTempCelsius = 0.0;
     }
 
-    /** Mimics the TalonFX soft limits: stop the pivot at the limit and kill velocity pushing past it. */
     private void enforcePivotLimits() {
         double position = pivotSim.getAngularPosition().in(Rotations);
         double velocity = pivotSim.getAngularVelocityRadPerSec();

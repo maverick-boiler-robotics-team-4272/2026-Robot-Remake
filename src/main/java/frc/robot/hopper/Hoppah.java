@@ -24,7 +24,7 @@ import static frc.robot.constants.SubsystemConstants.*;
 
 public class Hoppah extends SubsystemBase {
     HoppahIO io;
-    HoppahIOInputsAutoLogged hoppahinputs = new HoppahIOInputsAutoLogged();
+    HoppahIOInputsAutoLogged hoppahInputs = new HoppahIOInputsAutoLogged();
 
     HoppahIOInputsAutoLogged LInputs = new HoppahIOInputsAutoLogged();
     HoppahIOInputsAutoLogged RInputs = new HoppahIOInputsAutoLogged();
@@ -41,8 +41,16 @@ public class Hoppah extends SubsystemBase {
     
     @Override
     public void periodic() {
-        io.updateSwerveInputs(swerveInputs);
-        io.updateModuleInputs(moduleInputs);
-        io.logModules(swerveInputs);
+        io.updateInputs(hoppahInputs);
+    }
+    public Command hopRun() {
+        return runEnd(
+            () -> {
+                io.setHoppahState(0, 0);
+            }, 
+            () -> {
+                io.setHoppahState(0, 0);
+            }
+        );
     }
 }

@@ -21,17 +21,11 @@ import frc.robot.drive.VisionIO;
 import frc.robot.util.navgrid.Navgrid;
 
 import static frc.robot.constants.SubsystemConstants.*;
+import static frc.robot.constants.SubsystemConstants.HoppahConstants.HOPPAH_VOLTAGE;
 
 public class Hoppah extends SubsystemBase {
     HoppahIO io;
-    HoppahIOInputsAutoLogged hoppahInputs = new HoppahIOInputsAutoLogged();
-
-    HoppahIOInputsAutoLogged LInputs = new HoppahIOInputsAutoLogged();
-    HoppahIOInputsAutoLogged RInputs = new HoppahIOInputsAutoLogged();
-    HoppahIOInputsAutoLogged BRInputs = new HoppahIOInputsAutoLogged();
-    HoppahIOInputsAutoLogged BLInputs = new HoppahIOInputsAutoLogged();
-
-    ModuleIOInputsAutoLogged[] moduleInputs = {LInputs, RInputs, BRInputs, BLInputs};    
+    HoppahIOInputsAutoLogged hoppahInputs = new HoppahIOInputsAutoLogged(); 
     Pose2d[] nodes;
 
     public Hoppah(HoppahIO io) {
@@ -46,7 +40,7 @@ public class Hoppah extends SubsystemBase {
     public Command hopRun() {
         return runEnd(
             () -> {
-                io.setHoppahState(0, 0);
+                io.setHoppahState(HOPPAH_VOLTAGE, HOPPAH_VOLTAGE);
             }, 
             () -> {
                 io.setHoppahState(0, 0);

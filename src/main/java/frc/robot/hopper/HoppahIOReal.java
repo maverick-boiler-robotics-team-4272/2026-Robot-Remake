@@ -8,7 +8,6 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -116,21 +115,25 @@ public class HoppahIOReal implements HoppahIO {
         motorBLSupplyCurrent = motorBL.getSupplyCurrent();
         motorBLVelocityRPS = motorBL.getVelocity();
         motorBLSupplyVoltage = motorBL.getSupplyVoltage();
+        motorBLOutputVolts = motorBL.getMotorVoltage();
        
         motorBRStatorCurrent = motorBR.getStatorCurrent();
         motorBRSupplyCurrent = motorBR.getSupplyCurrent();
         motorBRVelocityRPS = motorBR.getVelocity();
         motorBRSupplyVoltage = motorBR.getSupplyVoltage();
+        motorBROutputVolts = motorBR.getMotorVoltage();
         
         motorLStatorCurrent = motorL.getStatorCurrent();
         motorLSupplyCurrent = motorL.getSupplyCurrent();
         motorLVelocityRPS = motorL.getVelocity();
         motorLSupplyVoltage = motorL.getSupplyVoltage();
+        motorLOutputVolts = motorL.getMotorVoltage();
         
         motorRStatorCurrent = motorR.getStatorCurrent();
         motorRSupplyCurrent = motorR.getSupplyCurrent();
         motorRVelocityRPS = motorR.getVelocity();
         motorRSupplyVoltage = motorR.getSupplyVoltage();
+        motorROutputVolts = motorR.getMotorVoltage();
 
         BaseStatusSignal.setUpdateFrequencyForAll(
         50,
@@ -138,21 +141,22 @@ public class HoppahIOReal implements HoppahIO {
         motorBLSupplyCurrent,
         motorBLVelocityRPS,
         motorBLSupplyVoltage,
+        motorBLOutputVolts,
         motorBRStatorCurrent,
         motorBRSupplyCurrent,
         motorBRVelocityRPS,
         motorBRSupplyVoltage,
+        motorBROutputVolts,
         motorLStatorCurrent,
         motorLSupplyCurrent,
         motorLVelocityRPS,
         motorLSupplyVoltage,
+        motorLOutputVolts,
         motorRStatorCurrent,
         motorRSupplyCurrent,
         motorRVelocityRPS,
-        motorRSupplyVoltage);
-
-        
-        final DutyCycleOut m_request = new DutyCycleOut(0);
+        motorRSupplyVoltage,
+        motorROutputVolts);
 
         motorR.setControl(new Follower(motorL.getDeviceID(), MotorAlignmentValue.Aligned));
         motorBR.setControl(new Follower(motorBL.getDeviceID(), MotorAlignmentValue.Aligned));

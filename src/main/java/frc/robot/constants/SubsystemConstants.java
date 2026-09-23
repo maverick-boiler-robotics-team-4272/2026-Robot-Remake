@@ -57,5 +57,7 @@ public class SubsystemConstants {
         public static final double FEEDER_KS = 0.4;
         public static final double FEEDER_KV = 0.1243 * FEEDER_GEARING;
         public static final boolean FEEDER_INVERTED = true;
+
+        public static final double HOPPAH_VOLTAGE = 10.0;
     }
 }

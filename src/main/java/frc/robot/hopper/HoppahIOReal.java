@@ -13,6 +13,8 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 
 import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
 
@@ -20,32 +22,28 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 public class HoppahIOReal implements HoppahIO {
    private static final int motorLID = 0;
-   private static final int motorRID = 0;
    private static final int motorBLID = 0;  
    private static final int motorBRID = 0;
 
 
    protected final TalonFX motorL;
-   protected final TalonFX motorR;
    protected final TalonFX motorBL;
    protected final TalonFX motorBR;
 
    //control requests
+   private final VelocityVoltage control = new VelocityVoltage(0);
+   private final VoltageOut voltControl = new VoltageOut(0);
 
     protected final StatusSignal<Current> motorLStatorCurrent;
     protected final StatusSignal<Current> motorLSupplyCurrent;
     protected final StatusSignal<AngularVelocity> motorLVelocityRPS;
     protected final StatusSignal<Voltage> motorLSupplyVoltage;
     protected final StatusSignal<Voltage> motorLOutputVolts;
-
-    protected final StatusSignal<Current> motorRStatorCurrent;
-    protected final StatusSignal<Current> motorRSupplyCurrent;
-    protected final StatusSignal<AngularVelocity> motorRVelocityRPS;
-    protected final StatusSignal<Voltage> motorRSupplyVoltage;
-    protected final StatusSignal<Voltage> motorROutputVolts;
 
     protected final StatusSignal<Current> motorBLStatorCurrent;
     protected final StatusSignal<Current> motorBLSupplyCurrent;
@@ -60,13 +58,11 @@ public class HoppahIOReal implements HoppahIO {
     protected final StatusSignal<Voltage> motorBROutputVolts;
 
     private final Debouncer motorLIsConnected = new Debouncer(0.5);
-    private final Debouncer motorRIsConnected = new Debouncer(0.5);
     private final Debouncer motorBLIsConnected = new Debouncer(0.5);
     private final Debouncer motorBRIsConnected = new Debouncer(0.5);
 
     public HoppahIOReal() {
         motorL = new TalonFX(motorLID);
-        motorR = new TalonFX(motorRID);
         motorBL = new TalonFX(motorBLID);
         motorBR = new TalonFX(motorBRID);
 
@@ -77,10 +73,10 @@ public class HoppahIOReal implements HoppahIO {
             .withKS(BELT_KS);
 
         Slot0Configs feederSlot0Configs = new Slot0Configs()
-            .withKP(FEEDER_KP)
-            .withKD(FEEDER_KD)
-            .withKV(FEEDER_KV)
-            .withKS(FEEDER_KS);
+            .withKP(TOP_BELT_KP)
+            .withKD(TOP_BELT_KD)
+            .withKV(TOP_BELT_KV)
+            .withKS(TOP_BELT_KS);
 
         var beltConfig = new TalonFXConfiguration();
             beltConfig.withCurrentLimits(new CurrentLimitsConfigs()
@@ -99,15 +95,14 @@ public class HoppahIOReal implements HoppahIO {
             feederConfig.withCurrentLimits(new CurrentLimitsConfigs()
                 .withSupplyCurrentLimit(30)
                 .withSupplyCurrentLimitEnable(true));
-                feederConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(FEEDER_GEARING));
+                feederConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
             feederConfig.withSlot0(feederSlot0Configs);
             feederConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(FEEDER_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
+                .withInverted(TOP_BELT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
             feederConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
         motorL.getConfigurator().apply(beltConfig);
-        motorR.getConfigurator().apply(beltConfig);
         motorBL.getConfigurator().apply(feederConfig);
         motorBR.getConfigurator().apply(feederConfig);
 
@@ -128,12 +123,6 @@ public class HoppahIOReal implements HoppahIO {
         motorLVelocityRPS = motorL.getVelocity();
         motorLSupplyVoltage = motorL.getSupplyVoltage();
         motorLOutputVolts = motorL.getMotorVoltage();
-        
-        motorRStatorCurrent = motorR.getStatorCurrent();
-        motorRSupplyCurrent = motorR.getSupplyCurrent();
-        motorRVelocityRPS = motorR.getVelocity();
-        motorRSupplyVoltage = motorR.getSupplyVoltage();
-        motorROutputVolts = motorR.getMotorVoltage();
 
         BaseStatusSignal.setUpdateFrequencyForAll(
         50,
@@ -151,14 +140,8 @@ public class HoppahIOReal implements HoppahIO {
         motorLSupplyCurrent,
         motorLVelocityRPS,
         motorLSupplyVoltage,
-        motorLOutputVolts,
-        motorRStatorCurrent,
-        motorRSupplyCurrent,
-        motorRVelocityRPS,
-        motorRSupplyVoltage,
-        motorROutputVolts);
+        motorLOutputVolts);
 
-        motorR.setControl(new Follower(motorL.getDeviceID(), MotorAlignmentValue.Aligned));
         motorBR.setControl(new Follower(motorBL.getDeviceID(), MotorAlignmentValue.Aligned));
     }
     
@@ -168,12 +151,6 @@ public class HoppahIOReal implements HoppahIO {
         motorLSupplyCurrent,
         motorLVelocityRPS,
         motorLSupplyVoltage);
-
-        StatusCode motorRStatus = BaseStatusSignal.refreshAll(
-        motorRStatorCurrent,
-        motorRSupplyCurrent,
-        motorRVelocityRPS,
-        motorRSupplyVoltage);
 
         StatusCode motorBLStatus = BaseStatusSignal.refreshAll(
         motorBLStatorCurrent,
@@ -194,12 +171,6 @@ public class HoppahIOReal implements HoppahIO {
         inputs.motorLVelocityRPS = motorLVelocityRPS.getValueAsDouble();
         inputs.motorLSupplyVoltage = motorLSupplyVoltage.getValueAsDouble();
 
-        inputs.motorRIsConnected = motorRIsConnected.calculate(motorRStatus.isOK());
-        inputs.motorRStatorCurrent = motorRStatorCurrent.getValueAsDouble();
-        inputs.motorRSupplyCurrent  = motorRSupplyCurrent.getValueAsDouble();
-        inputs.motorRVelocityRPS = motorRVelocityRPS.getValueAsDouble();
-        inputs.motorRSupplyVoltage = motorRSupplyVoltage.getValueAsDouble();
-        
         inputs.motorBLIsConnected = motorBLIsConnected.calculate(motorBLStatus.isOK());
         inputs.motorBLStatorCurrent = motorBLStatorCurrent.getValueAsDouble();
         inputs.motorBLSupplyCurrent  = motorBLSupplyCurrent.getValueAsDouble();
@@ -213,9 +184,15 @@ public class HoppahIOReal implements HoppahIO {
         inputs.motorBRSupplyVoltage = motorBRSupplyVoltage.getValueAsDouble();
     }
     
+    @Override
     public void setHoppahState(double bottomSpin, double topSpin) {
-        motorBL.setVoltage(bottomSpin);
-        motorL.setVoltage(topSpin);
+        motorBL.setControl(control.withVelocity(bottomSpin));
+        motorL.setControl(control.withVelocity(topSpin));
+    }
+
+    @Override
+    public void defaultState() {
+        motorBL.setControl(voltControl);
+        motorL.setControl(voltControl);
     }
 }
-   

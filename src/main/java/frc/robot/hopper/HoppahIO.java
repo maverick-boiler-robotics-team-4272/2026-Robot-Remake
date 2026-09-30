@@ -12,13 +12,6 @@ public interface HoppahIO {
         public double motorLSupplyVoltage = 0;
         public double motorLOutputVolts = 0;
 
-        public boolean motorRIsConnected = false; 
-        public double motorRStatorCurrent = 0;
-        public double motorRSupplyCurrent = 0;
-        public double motorRVelocityRPS = 0;
-        public double motorRSupplyVoltage = 0;
-        public double motorROutputVolts = 0;
-
         public boolean motorBLIsConnected = false; 
         public double motorBLStatorCurrent = 0;
         public double motorBLSupplyCurrent = 0;

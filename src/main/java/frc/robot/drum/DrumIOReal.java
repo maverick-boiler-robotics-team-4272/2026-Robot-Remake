@@ -9,12 +9,16 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.*;
 
 import static frc.robot.constants.SubsystemConstants.DrumConstants.*;
@@ -29,6 +33,10 @@ public class DrumIOReal implements DrumIO {
     protected final TalonFX motorHood;
 
     //control request
+    private final VelocityVoltage speedControl = new VelocityVoltage(0);
+    private final PositionVoltage positionControl = new PositionVoltage(0);
+    private final VoltageOut voltControl = new VoltageOut(0);
+
 
     protected final StatusSignal<Angle> motorHoodPosition;
     protected final StatusSignal<Current> motorHoodStatorCurrent;
@@ -185,4 +193,15 @@ public class DrumIOReal implements DrumIO {
         inputs.motorHoodOutputVoltage = motorHoodOutputVoltage.getValueAsDouble();
     }
 
+    @Override
+    public void setDrumState(double rps, double ang) {
+        motorL.setControl(speedControl.withVelocity(rps));
+        motorHood.setControl(positionControl.withPosition(Units.degreesToRotations(ang)));       
+    }
+
+    @Override
+    public void defaultState() {
+        motorL.setControl(voltControl);
+        motorHood.setControl(positionControl.withPosition(0));
+    }
 }

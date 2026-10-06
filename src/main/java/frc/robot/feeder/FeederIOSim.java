@@ -39,6 +39,7 @@ public class FeederIOSim extends FeederIOReal {
         feederModel.update(0.02);
 
         motorLSim.setRotorVelocity(feederModel.getAngularVelocity().times(FEED_GEARING));
+        motorRSim.setRotorVelocity(feederModel.getAngularVelocity().times(FEED_GEARING));
 
         super.updateInputs(inputs);
 

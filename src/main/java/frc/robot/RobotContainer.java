@@ -19,17 +19,17 @@ import frc.robot.drive.VisionIOPhotonVisionSim;
 
 public class RobotContainer {
   Drive drive;
-  SwerveIOCTRE realIO = null;
+  SwerveIOCTRE swerveIO = null;
   public static final CommandXboxController joystick = new CommandXboxController(0);
   public RobotContainer() {
     switch (FieldConstants.currentMode) {
       case REAL:
-        realIO = new SwerveIOCTRE();
-        drive = new Drive(realIO, new VisionIOPhotonVision("Limelight", VisionConstants.robotToCamera0));
+        swerveIO = new SwerveIOCTRE();
+        drive = new Drive(swerveIO, new VisionIOPhotonVision("Limelight", VisionConstants.robotToCamera0));
         break;
       case SIM :
-        drive = new Drive(new SwerveIOSim(),  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
-    
+        swerveIO =  new SwerveIOSim();
+        drive = new Drive(swerveIO,  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
       default:
         drive = new Drive(new SwerveIO() {}, new VisionIO() {});
         break;
@@ -39,7 +39,7 @@ public class RobotContainer {
 
   private void configureBindings() {
     drive.setDefaultCommand(drive.joystickDrive(joystick::getLeftX, joystick::getLeftY, joystick::getRightX));
-    joystick.b().onTrue(drive.runOnce(realIO::seedFieldCentric));
+    joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
   }
 
   public Command getAutonomousCommand() {

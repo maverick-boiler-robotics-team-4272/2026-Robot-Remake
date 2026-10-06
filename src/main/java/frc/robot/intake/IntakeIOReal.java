@@ -1,3 +1,4 @@
+
 package frc.robot.intake;
 
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
@@ -9,6 +10,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -60,6 +62,10 @@ public class IntakeIOReal implements IntakeIO {
     private final BaseStatusSignal[] pivotSignals = {
         pivotPosition, pivotVelocity, pivotAppliedVolts, pivotStatorCurrent, pivotSupplyCurrent, pivotTemp
     };
+
+    //control requests
+    private final VelocityVoltage control = new VelocityVoltage(0);
+    private final VoltageOut voltControl = new VoltageOut(0);
 
     public IntakeIOReal() {
         var rollerConfig = new TalonFXConfiguration();
@@ -133,22 +139,12 @@ public class IntakeIOReal implements IntakeIO {
     }
 
     @Override
-    public void setRollerVelocity(double rotationsPerSec) {
-        rollerLeader.setControl(rollerVelocityRequest.withVelocity(rotationsPerSec));
+    public void setIntakeState(double rps, double angle) {
+        rollerLeader.setControl(control.withVelocity(rps));
     }
 
     @Override
-    public void setPivotPosition(double rotations) {
-        pivot.setControl(pivotPositionRequest.withPosition(rotations));
-    }
-
-    @Override
-    public void resetPivotPosition(Rotation2d position) {
-        pivot.setPosition(position.getRotations());
-    }
-
-    @Override
-    public void stop() {
+    public void defaultState() {
         rollerLeader.setControl(neutralRequest);
         pivot.setControl(neutralRequest);
     }

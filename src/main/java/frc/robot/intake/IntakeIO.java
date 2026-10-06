@@ -1,3 +1,4 @@
+
 package frc.robot.intake;
 
 import org.littletonrobotics.junction.AutoLog;
@@ -32,13 +33,7 @@ public interface IntakeIO {
 
     public default void updateInputs(IntakeIOInputs inputs) {}
 
-    /** Roller velocity setpoint in mechanism rotations/sec. */
-    public default void setRollerVelocity(double rotationsPerSec) {}
+    public default void setIntakeState(double rps, double angle) {}
 
-    /** Pivot position setpoint in mechanism rotations. */
-    public default void setPivotPosition(double rotations) {}
-
-    public default void resetPivotPosition(Rotation2d position) {}
-
-    public default void stop() {}
+    public default void defaultState() {}
 }

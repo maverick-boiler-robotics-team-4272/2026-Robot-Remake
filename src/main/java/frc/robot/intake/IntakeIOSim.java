@@ -1,3 +1,4 @@
+
 package frc.robot.intake;
 
 import static edu.wpi.first.units.Units.Rotations;
@@ -73,7 +74,6 @@ public class IntakeIOSim implements IntakeIO {
         inputs.pivotTempCelsius = 0.0;
     }
 
-    /** Mimics the TalonFX soft limits: stop the pivot at the limit and kill velocity pushing past it. */
     private void enforcePivotLimits() {
         double position = pivotSim.getAngularPosition().in(Rotations);
         double velocity = pivotSim.getAngularVelocityRadPerSec();
@@ -84,23 +84,9 @@ public class IntakeIOSim implements IntakeIO {
         }
     }
 
+   
     @Override
-    public void setRollerVelocity(double rotationsPerSec) {
-        rollerSetpointRps = rotationsPerSec;
-    }
-
-    @Override
-    public void setPivotPosition(double rotations) {
-        pivotSetpointRotations = rotations;
-    }
-
-    @Override
-    public void resetPivotPosition(Rotation2d position) {
-        pivotSim.setState(position.getRadians(), pivotSim.getAngularVelocityRadPerSec());
-    }
-
-    @Override
-    public void stop() {
+    public void defaultState() {
         rollerSetpointRps = 0.0;
     }
 }

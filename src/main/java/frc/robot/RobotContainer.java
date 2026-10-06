@@ -22,6 +22,10 @@ import frc.robot.hopper.HoppahIO;
 import frc.robot.hopper.Hoppah;
 import frc.robot.hopper.HoppahIOReal;
 import frc.robot.hopper.HoppahIOSim;
+import frc.robot.intake.Intake;
+import frc.robot.intake.IntakeIO;
+import frc.robot.intake.IntakeIOReal;
+import frc.robot.intake.IntakeIOSim;
 import frc.robot.feeder.Feeder;
 import frc.robot.feeder.FeederIO;
 import frc.robot.feeder.FeederIOReal;
@@ -30,10 +34,6 @@ import frc.robot.drum.Drum;
 import frc.robot.drum.DrumIO;
 import frc.robot.drum.DrumIOReal;
 import frc.robot.drum.DrumIOSim;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.IntakeIO;
-import frc.robot.subsystems.IntakeIOReal;
-import frc.robot.subsystems.IntakeIOSim;
 
 public class RobotContainer {
   Drive drive;

@@ -42,4 +42,14 @@ public class SubsystemConstants {
             PhoenixUtil.regulateModuleConstantForSimulation(TunerConstants.BackRight)
         };
     }
+    public static class FeederConstants {
+        public static final double FEEDER_RPS = 50;
+        
+        public static final double FEED_GEARING = 11.0/24.0;
+        public static final double FEED_KP = 5;
+        public static final double FEED_KD = 0.0;
+        public static final double FEED_KS = 0.4;
+        public static final double FEED_KV = 0.1243 * FEED_GEARING;
+        public static final boolean FEED_INVERTED = true;
+    }
 }

@@ -91,20 +91,20 @@ public class HoppahIOReal implements HoppahIO {
             beltConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
-        var feederConfig = new TalonFXConfiguration();
-            feederConfig.withCurrentLimits(new CurrentLimitsConfigs()
+        var lowerBeltConfig = new TalonFXConfiguration();
+            lowerBeltConfig.withCurrentLimits(new CurrentLimitsConfigs()
                 .withSupplyCurrentLimit(30)
                 .withSupplyCurrentLimitEnable(true));
-                feederConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
-            feederConfig.withSlot0(feederSlot0Configs);
-            feederConfig.withMotorOutput(new MotorOutputConfigs()
+                lowerBeltConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
+            lowerBeltConfig.withSlot0(feederSlot0Configs);
+            lowerBeltConfig.withMotorOutput(new MotorOutputConfigs()
                 .withInverted(TOP_BELT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
-            feederConfig.withMotorOutput(new MotorOutputConfigs()
+            lowerBeltConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
         motorL.getConfigurator().apply(beltConfig);
-        motorBL.getConfigurator().apply(feederConfig);
-        motorBR.getConfigurator().apply(feederConfig);
+        motorBL.getConfigurator().apply(lowerBeltConfig);
+        motorBR.getConfigurator().apply(lowerBeltConfig);
 
         motorBLStatorCurrent = motorBL.getStatorCurrent();
         motorBLSupplyCurrent = motorBL.getSupplyCurrent();

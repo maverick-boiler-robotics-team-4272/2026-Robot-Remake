@@ -30,12 +30,17 @@ import frc.robot.drum.Drum;
 import frc.robot.drum.DrumIO;
 import frc.robot.drum.DrumIOReal;
 import frc.robot.drum.DrumIOSim;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.IntakeIO;
+import frc.robot.subsystems.IntakeIOReal;
+import frc.robot.subsystems.IntakeIOSim;
 
 public class RobotContainer {
   Drive drive;
   Hoppah hoppah;
   Feeder feeder;
   Drum drum;
+  Intake intake;
   SwerveIOCTRE swerveIO = null;
   public static final CommandXboxController joystick = new CommandXboxController(0);
   public RobotContainer() {
@@ -46,15 +51,20 @@ public class RobotContainer {
         hoppah = new Hoppah(new HoppahIOReal());
         feeder = new Feeder(new FeederIOReal());
         drum = new Drum(new DrumIOReal());
+        intake = new Intake(new IntakeIOReal());
         break;
       case SIM :
         swerveIO =  new SwerveIOSim();
         drive = new Drive(swerveIO,  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
+        drive = new Drive(new SwerveIOSim(),  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
+        intake = new Intake(new IntakeIOSim());
+        break;
       default:
         drive = new Drive(new SwerveIO() {}, new VisionIO() {});
         hoppah = new Hoppah(new HoppahIO() {});
         feeder = new Feeder(new FeederIO() {});
         drum = new Drum(new DrumIO() {});
+        intake = new Intake(new IntakeIO() {});
         break;
     }
     configureBindings();

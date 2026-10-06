@@ -26,7 +26,7 @@ public interface VisionIO {
   public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
 
   /** Represents a robot pose sample used for pose estimation. */
-  public static record PoseObservation(
+  public static record PoseObservation( 
       double timestamp,
       Pose3d pose,
       double ambiguity,

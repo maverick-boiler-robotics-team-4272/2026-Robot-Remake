@@ -26,11 +26,9 @@ import static frc.robot.constants.SubsystemConstants.HoppahConstants.HOPPAH_RPS;
 public class Hoppah extends SubsystemBase {
     HoppahIO io;
     HoppahIOInputsAutoLogged hoppahInputs = new HoppahIOInputsAutoLogged(); 
-    Pose2d[] nodes;
 
     public Hoppah(HoppahIO io) {
             this.io = io;
-            nodes = Navgrid.getInstance().nodes;
         }
     
     @Override

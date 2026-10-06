@@ -26,9 +26,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 public class HoppahIOReal implements HoppahIO {
-   private static final int motorLID = 0;
-   private static final int motorBLID = 0;  
-   private static final int motorBRID = 0;
+   private static final int motorLID = 30;
+   private static final int motorBLID = 31;  
+   private static final int motorBRID = 32;
 
 
    protected final TalonFX motorL;

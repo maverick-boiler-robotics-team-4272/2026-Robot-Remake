@@ -25,8 +25,8 @@ import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 
 
 public class FeederIOReal implements FeederIO {
-    private static final int motorLID = 0;
-    private static final int motorRID = 0;
+    private static final int motorLID = 40;
+    private static final int motorRID = 41;
 
     protected final TalonFX motorL;
     protected final TalonFX motorR;

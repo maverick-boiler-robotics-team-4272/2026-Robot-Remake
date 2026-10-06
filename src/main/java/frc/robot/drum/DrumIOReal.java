@@ -28,9 +28,9 @@ import edu.wpi.first.units.measure.*;
 import static frc.robot.constants.SubsystemConstants.DrumConstants.*;
 
 public class DrumIOReal implements DrumIO {
-    private static final int motorHoodID = 0;
-    private static final int motorLID = 0;
-    private static final int motorRID = 0;
+    private static final int motorHoodID = 50;
+    private static final int motorLID = 51;
+    private static final int motorRID = 52;
 
     protected final TalonFX motorL;
     protected final TalonFX motorR;

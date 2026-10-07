@@ -45,4 +45,15 @@ public class Hoppah extends SubsystemBase {
             }
         );
     }
+
+    public Command setHoppahState(double bottomRPS, double topRPS) {
+        return runEnd(
+            () -> {
+                io.setHoppahState(bottomRPS, topRPS);
+            }, 
+            () -> {
+                io.defaultState();
+            }
+        );
+    }
 }

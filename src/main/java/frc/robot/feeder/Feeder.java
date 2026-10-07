@@ -18,13 +18,13 @@ public class Feeder extends SubsystemBase {
     public void periodic() {
         io.updateInputs(feederInputs);
     }
-    public Command feedRun() {
+    public Command feedRun(double rps) {
         return runEnd(
             () -> {
-                io.setFeederState(FEEDER_RPS);
+                io.setFeederState(rps);
             }, 
             () -> {
-                io.defaultState();;
+                io.defaultState();
             }
         );
     }

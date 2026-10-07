@@ -28,4 +28,8 @@ public class Feeder extends SubsystemBase {
             }
         );
     }
+
+    public Command defaultCommand() {
+        return run(() -> io.defaultState());
+    }
 }

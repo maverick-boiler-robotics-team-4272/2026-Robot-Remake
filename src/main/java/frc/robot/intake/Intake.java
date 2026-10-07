@@ -22,8 +22,11 @@ public class Intake extends SubsystemBase {
         Logger.processInputs("Intake", inputs);
     }
 
-
     public Command setIntake(double rollerRps, double pivotRotations) {
         return runEnd(() -> io.setIntakeState(rollerRps, pivotRotations), () -> io.defaultState());
+    }
+
+    public Command defaultCommand() {
+        return run(() -> io.defaultState());
     }
 }

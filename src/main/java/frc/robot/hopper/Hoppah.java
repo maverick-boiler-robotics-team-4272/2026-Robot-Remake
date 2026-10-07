@@ -56,4 +56,8 @@ public class Hoppah extends SubsystemBase {
             }
         );
     }
+
+    public Command defaultCommand() {
+        return run(() -> io.defaultState());
+    }
 }

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Newton;
+import static edu.wpi.first.units.Units.derive;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
@@ -73,18 +74,25 @@ public class RobotContainer {
         break;
     }
     configureBindings();
+    setDefaultCommands();
   }
 
-  private void configureBindings() {
+  private void setDefaultCommands() {
     drive.setDefaultCommand(drive.joystickDrive(joystick::getLeftX, joystick::getLeftY, joystick::getRightX));
-    joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
-    joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
-    joystick.rightTrigger().whileTrue(new ParallelCommandGroup(
+    hoppah.setDefaultCommand(hoppah.defaultCommand());
+    feeder.setDefaultCommand(feeder.defaultCommand());
+    drum.setDefaultCommand(drum.defaultCommand());
+    intake.setDefaultCommand(intake.defaultCommand());
+  }
+  private void configureBindings() {
+    /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
+    /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
+    /* Shoot */ joystick.rightTrigger().whileTrue(new ParallelCommandGroup(
       drum.setDrumState(40, Rotation2d.fromDegrees(20)),
       feeder.feedRun(FEEDER_RPS),
       hoppah.hopRun()
     ));
-    joystick.rightBumper().whileTrue(new ParallelCommandGroup(
+    /* Rev */ joystick.rightBumper().whileTrue(new ParallelCommandGroup(
       drum.setDrumState(40, Rotation2d.fromDegrees(20)),
       feeder.feedRun(-FEEDER_RPS * 0.3),
       hoppah.setHoppahState(-HOPPAH_RPS * 0.75, HOPPAH_RPS)

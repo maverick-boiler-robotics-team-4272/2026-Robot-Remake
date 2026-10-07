@@ -40,4 +40,8 @@ public class Drum extends SubsystemBase {
             () -> io.defaultState()
         );
     }
+
+    public Command defaultCommand() {
+        return run(() -> io.defaultState());
+    }
 }

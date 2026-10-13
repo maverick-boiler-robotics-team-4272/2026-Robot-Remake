@@ -7,6 +7,10 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Newton;
 import static edu.wpi.first.units.Units.derive;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
+
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import static frc.robot.constants.FieldConstants.getHubLocation;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
 
@@ -48,6 +52,8 @@ public class RobotContainer {
   Drum drum;
   Intake intake;
   SwerveIOCTRE swerveIO = null;
+
+  private static final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   public static final CommandXboxController joystick = new CommandXboxController(0);
   public RobotContainer() {
     switch (FieldConstants.currentMode) {
@@ -90,12 +96,14 @@ public class RobotContainer {
     /* Shoot */ joystick.rightTrigger().whileTrue(new ParallelCommandGroup(
       drum.setDrumState(40, Rotation2d.fromDegrees(20)),
       feeder.feedRun(FEEDER_RPS),
-      hoppah.hopRun()
+      hoppah.hopRun(),
+      drive.applyRequest(() -> brake)
     ));
     /* Rev */ joystick.rightBumper().whileTrue(new ParallelCommandGroup(
       drum.setDrumState(40, Rotation2d.fromDegrees(20)),
       feeder.feedRun(-FEEDER_RPS * 0.3),
-      hoppah.setHoppahState(-HOPPAH_RPS * 0.75, HOPPAH_RPS)
+      hoppah.setHoppahState(-HOPPAH_RPS * 0.75, HOPPAH_RPS),
+      drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystick::getLeftX, joystick::getLeftY)
     ));
   }
 

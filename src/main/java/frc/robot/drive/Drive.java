@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -19,12 +20,14 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.SubsystemConstants;
 import frc.robot.util.navgrid.Navgrid;
 
+import static frc.robot.constants.FieldConstants.*;
 import static frc.robot.constants.SubsystemConstants.DriveConstants.*;
 
 public class Drive extends SubsystemBase {
@@ -173,6 +176,10 @@ public class Drive extends SubsystemBase {
         return swerveInputs;
     }
 
+    public Command applyRequest(Supplier<SwerveRequest> request) {
+        return run(() -> io.setControl(request.get()));
+    }
+
     public Command joystickDrive(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickThetaX) {
         FieldCentric request = new SwerveRequest.FieldCentric()
         .withDeadband(MAX_DRIVE_SPEED * 0.05)
@@ -225,5 +232,25 @@ public class Drive extends SubsystemBase {
                     .withTargetDirection(new Rotation2d(-speeds.vxMetersPerSecond, -speeds.vyMetersPerSecond)));
         });
     }
-    
+
+    public Command pointTowardsPoint(
+            Supplier<Translation2d> desiredPoint, DoubleSupplier joystickX, DoubleSupplier joystickY) {
+        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+            .withDeadband(MAX_DRIVE_SPEED * 0.05)
+            .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
+        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
+
+        return defer(
+            () -> run(() -> {
+                Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
+
+            Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
+            io.setControl(
+                request
+                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                    .withTargetDirection(targetAngle));
+        }));
+    }
 }

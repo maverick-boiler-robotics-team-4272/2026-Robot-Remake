@@ -20,6 +20,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.util.PhoenixUtil;
 
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 
@@ -74,9 +75,8 @@ public class FeederIOReal implements FeederIO {
                 .withNeutralMode(NeutralModeValue.Coast));
 
                 
-        motorL.getConfigurator().apply(feederConfig);
-        motorR.getConfigurator().apply(feederConfig);
-
+        PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(feederConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorR.getConfigurator().apply(feederConfig));
         
         motorLStatorCurrent = motorL.getStatorCurrent();
         motorLSupplyCurrent = motorL.getSupplyCurrent();

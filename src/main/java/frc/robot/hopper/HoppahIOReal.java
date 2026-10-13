@@ -24,6 +24,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.util.PhoenixUtil;
 
 public class HoppahIOReal implements HoppahIO {
    private static final int motorLID = 30;
@@ -102,9 +103,9 @@ public class HoppahIOReal implements HoppahIO {
             lowerBeltConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
-        motorL.getConfigurator().apply(beltConfig);
-        motorBL.getConfigurator().apply(lowerBeltConfig);
-        motorBR.getConfigurator().apply(lowerBeltConfig);
+        PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(beltConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorBL.getConfigurator().apply(lowerBeltConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorBR.getConfigurator().apply(lowerBeltConfig));
 
         motorBLStatorCurrent = motorBL.getStatorCurrent();
         motorBLSupplyCurrent = motorBL.getSupplyCurrent();

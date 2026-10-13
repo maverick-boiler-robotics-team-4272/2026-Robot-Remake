@@ -57,9 +57,7 @@ public class SubsystemConstants {
         public static final double PIVOT_DEPLOYED_ROTATIONS = 0.25;
         public static final double PIVOT_TOLERANCE_ROTATIONS = 0.02;
 
-        /** Roller speeds in rotations/sec; negative ejects. */
         public static final double ROLLER_INTAKE_RPS = 50.0;
-        public static final double ROLLER_EJECT_RPS = -50.0;
     }
 
     public static class DriveConstants {

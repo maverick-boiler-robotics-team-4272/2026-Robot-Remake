@@ -24,6 +24,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.*;
+import frc.robot.util.PhoenixUtil;
 
 import static frc.robot.constants.SubsystemConstants.DrumConstants.*;
 
@@ -106,11 +107,11 @@ public class DrumIOReal implements DrumIO {
             hoodConfig.withMotorOutput(new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast));
 
-        motorL.getConfigurator().apply(drumConfig);
-        motorR.getConfigurator().apply(drumConfig);
-        motorHood.getConfigurator().apply(hoodConfig);
+        PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(drumConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorR.getConfigurator().apply(drumConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorHood.getConfigurator().apply(hoodConfig));
         motorR.setControl(new Follower(motorLID, MotorAlignmentValue.Opposed));
-        motorHood.setPosition(0);
+        PhoenixUtil.tryUntilOk(5, () -> motorHood.setPosition(0));
 
         motorHoodPosition = motorHood.getPosition();
         motorHoodStatorCurrent = motorHood.getStatorCurrent();

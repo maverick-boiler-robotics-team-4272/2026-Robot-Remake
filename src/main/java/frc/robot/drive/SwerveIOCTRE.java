@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -114,6 +115,18 @@ public class SwerveIOCTRE extends TunerSwerveDrivetrain implements SwerveIO {
     }
 
     @Override
+    public void initSwerveInputs(SwerveIOInputs inputs) {
+        inputs.fromDriveState(this.getState());
+
+        PathPlannerLogging.setLogTargetPoseCallback((pose) -> inputs.desiredPose = pose);
+
+        inputs.yawVelocityRadPerSec = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
+        inputs.yawAccelerationRadPerSecPerSec = accelerationZ.getValueAsDouble() * 9.80665; // gravity
+
+        Logger.recordOutput("Drive/Speeds/Desired", getKinematics().toChassisSpeeds(inputs.ModuleTargets));
+    }
+
+    @Override
     public void updateModuleInputs(ModuleIOInputs... inputs) {
         for(int i = 0; i < inputs.length; i++) {
             moduleRefreshFunctions.get(i).refreshSignals(inputs[i]);
@@ -142,7 +155,7 @@ public class SwerveIOCTRE extends TunerSwerveDrivetrain implements SwerveIO {
 
         for(int i = 0; i < getModules().length; i++) {
             Logger.recordOutput(outNames[i][0], Rotation2d.fromRotations(getModule(i).getEncoder().getAbsolutePosition().getValueAsDouble()));
-            Logger.recordOutput(outNames[i][1], state.ModuleStates[1].angle);
+            Logger.recordOutput(outNames[i][1], state.ModuleStates[i].angle);
             Logger.recordOutput(outNames[i][2], state.ModuleTargets[i].angle);
             Logger.recordOutput(outNames[i][3], state.ModuleStates[i].speedMetersPerSecond);
             Logger.recordOutput(outNames[i][4], state.ModuleTargets[i].speedMetersPerSecond);
@@ -158,7 +171,6 @@ public class SwerveIOCTRE extends TunerSwerveDrivetrain implements SwerveIO {
     public void resetPose(Pose2d pose) {
         super.resetPose(pose);
     }
-    
 
     @Override
     public void resetHeading() {

@@ -15,8 +15,8 @@ import edu.wpi.first.math.numbers.N3;
 public interface SwerveIO {
     @AutoLog
     public static class SwerveIOInputs extends SwerveDriveState {
-        double yawVelocityRadPerSec = 0.0;
-        double yawAccelerationRadPerSecPerSec = 0.0;
+        public double yawVelocityRadPerSec = 0.0;
+        public double yawAccelerationRadPerSecPerSec = 0.0;
 
         void fromDriveState(SwerveDriveState state) {
             this.Pose = state.Pose;
@@ -30,6 +30,7 @@ public interface SwerveIO {
             this.SuccessfulDaqs = state.SuccessfulDaqs;
             this.FailedDaqs = state.FailedDaqs;
         }
+        public Pose2d desiredPose = Pose2d.kZero;
     }
 
     @AutoLog
@@ -52,6 +53,8 @@ public interface SwerveIO {
     }
 
     default void updateSwerveInputs(SwerveIOInputs inputs) {};
+
+    default void initSwerveInputs(SwerveIOInputs inputs) {};
 
     default void updateModuleInputs(ModuleIOInputs... inputs) {};
 

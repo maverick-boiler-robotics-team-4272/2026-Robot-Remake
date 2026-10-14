@@ -68,7 +68,6 @@ public class SwerveIOSim extends SwerveIOCTRE {
         super.updateSwerveInputs(inputs);
         updateGyroSim();
         Pose2d realRobotPose = drivetrainSim.getSimulatedDriveTrainPose();
-        inputs.Pose = realRobotPose;
 
         Logger.recordOutput("Sim/Drive/RealPose", realRobotPose);
     }

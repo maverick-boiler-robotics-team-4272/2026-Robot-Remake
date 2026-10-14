@@ -4,6 +4,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
+import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -12,7 +13,7 @@ import frc.robot.util.PhoenixUtil;
 public class SubsystemConstants {
     public static class IntakeConstants {
         // TODO: all values below are placeholders, replace with the real robot values.
-        public static final CANBus CAN_BUS = new CANBus(""); // "" = roboRIO bus
+        // public static final CANBus CAN_BUS = new CANBus(""); // "" = roboRIO bus
 
         public static final int ROLLER_LEADER_ID = 20;
         public static final int ROLLER_FOLLOWER_ID = 21;
@@ -86,9 +87,16 @@ public class SubsystemConstants {
         public static final double MAX_DRIVE_SPEED = TunerConstants.kSpeedAt12Volts.magnitude();
         public static final double MAX_ROTATIONAL_RATE = 8;
 
+        public static final double DRIVE_P = 6.25;
+        public static final double DRIVE_I = 0;
+        public static final double DRIVE_D = 0;
+
         public static final double ROTATION_P = 6.25;
         public static final double ROTATION_I = 0;
         public static final double ROTATION_D = 0;
+
+        public static final ModuleConfig MODULE_CONFIG = new ModuleConfig(2, MAX_DRIVE_SPEED, WHEEL_COF,
+                DCMotor.getKrakenX60Foc(4), 50, 4);
 
         @SuppressWarnings("unchecked")
         public static SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[] MODULE_CONSTANTS = new SwerveModuleConstants[] {

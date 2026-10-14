@@ -8,7 +8,14 @@ import static edu.wpi.first.units.Units.Newton;
 import static edu.wpi.first.units.Units.derive;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
 
+import java.io.IOException;
+import java.text.ParseException;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.FileVersionException;
 
 import static frc.robot.constants.FieldConstants.getHubLocation;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
@@ -68,7 +75,9 @@ public class RobotContainer {
       case SIM :
         swerveIO =  new SwerveIOSim();
         drive = new Drive(swerveIO,  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
-        drive = new Drive(new SwerveIOSim(),  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
+        hoppah = new Hoppah(new HoppahIOSim());
+        feeder = new Feeder(new FeederIOSim());
+        drum = new Drum(new DrumIOSim());
         intake = new Intake(new IntakeIOSim());
         break;
       default:
@@ -107,7 +116,11 @@ public class RobotContainer {
     ));
   }
 
-  public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+  public Command getAutonomousCommand(){
+    try {
+      return AutoBuilder.followPath(PathPlannerPath.fromPathFile("AUTO"));
+    } catch (Exception ex) {
+      return Commands.print("Big oops: " + ex.getMessage());
+    }
   }
 }

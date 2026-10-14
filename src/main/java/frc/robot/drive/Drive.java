@@ -15,6 +15,11 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentricFacingAngle;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,9 +27,13 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.FieldConstants;
 import frc.robot.constants.SubsystemConstants;
+import frc.robot.constants.TunerConstants;
 import frc.robot.util.navgrid.Navgrid;
 
 import static frc.robot.constants.FieldConstants.*;
@@ -45,11 +54,137 @@ public class Drive extends SubsystemBase {
     VisionIOInputsAutoLogged[] visionInputsList = {visionInputs};
     
     Pose2d[] nodes;
+    SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
     public Drive(SwerveIO io, VisionIO... visionIOs) {
         this.io = io;
         this.cameras = visionIOs;
         nodes = Navgrid.getInstance().nodes;
+        this.io.initSwerveInputs(swerveInputs);
+        initPathPlanner();
+    }
+
+    private void initPathPlanner() {
+        try {
+            // TunerConstants...
+            Translation2d[] moduleOffsets = new Translation2d[] {
+                    new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+                    new Translation2d(
+                            TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+                    new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+                    new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+            };
+            RobotConfig config = new RobotConfig(ROBOT_MASS_KG, WHEEL_COF, MODULE_CONFIG, moduleOffsets);
+            AutoBuilder.configure(
+                    () -> getState().Pose, // Supplier of current robot pose
+                    io::resetPose, // Consumer for seeding pose against auto
+                    () -> getState().Speeds, // Supplier of current robot speeds
+                    // Consumer of ChassisSpeeds and feedforwards to drive the robot
+                    (speeds, feedforwards) -> io.setControl(
+                            m_pathApplyRobotSpeeds.withSpeeds(speeds)
+                                    .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                                    .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())),
+                    new PPHolonomicDriveController(
+                            // PID constants for translation
+                            new PIDConstants(DRIVE_P, DRIVE_I, DRIVE_D),
+                            // PID constants for rotation
+                            new PIDConstants(ROTATION_P, ROTATION_I, ROTATION_D)),
+                    config,
+                    // Assume the path needs to be flipped for Red vs Blue, this is normally the
+                    // case
+                    () -> !FieldConstants.isRedSide(),
+                    this // Subsystem for requirements
+            );
+        } catch (Exception ex) {
+            DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder",
+                    ex.getStackTrace());
+        }
+    }
+
+    public SwerveDriveState getState() {
+        return swerveInputs;
+    }
+
+    public Command applyRequest(Supplier<SwerveRequest> request) {
+        return run(() -> io.setControl(request.get()));
+    }
+
+    public Command joystickDrive(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickThetaX) {
+        FieldCentric request = new SwerveRequest.FieldCentric()
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
+                .withDriveRequestType(DriveRequestType.Velocity);
+        return run(() -> {
+            io.setControl(
+                    request
+                            .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                            .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                            .withRotationalRate(-joystickThetaX.getAsDouble() * MAX_ROTATIONAL_RATE));
+        });
+    }
+
+    public Command joystickDriveWithAssist(DoubleSupplier joystickX, DoubleSupplier joystickY,
+            DoubleSupplier joystickTheta) {
+        FieldCentric request = new SwerveRequest.FieldCentric()
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
+                .withDriveRequestType(DriveRequestType.Velocity);
+        return run(() -> {
+
+            Pose2d[] relevent = Navgrid.getInstance().getRelevantNodes(getState().Pose, DRIVE_BASE_HYPOTONUSE * 1.5,
+                    nodes);
+            double xOffset = Navgrid.getInstance().xOffsetFromRelevantNodes(relevent)
+                    * Navgrid.getInstance().getCurrentMagnitude(joystickX.getAsDouble(), joystickY.getAsDouble());
+            double yOffset = Navgrid.getInstance().yOffsetFromRelevantNodes(relevent)
+                    * Navgrid.getInstance().getCurrentMagnitude(joystickX.getAsDouble(), joystickY.getAsDouble());
+
+            Logger.recordOutput("XOFF", xOffset);
+            Logger.recordOutput("yOFF", yOffset);
+
+            io.setControl(
+                    request
+                            .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED + xOffset)
+                            .withVelocityY(joystickX.getAsDouble() * MAX_DRIVE_SPEED + yOffset)
+                            .withRotationalRate(-joystickTheta.getAsDouble() * MAX_ROTATIONAL_RATE));
+        });
+    }
+
+    public Command rotateOnMove(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickTheta) {
+        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
+                .withDriveRequestType(DriveRequestType.Velocity)
+                .withHeadingPID(1.5, 0, 0);
+        return run(() -> {
+            ChassisSpeeds speeds = ChassisSpeeds.fromRobotRelativeSpeeds(getState().Speeds,
+                    getState().Pose.getRotation());
+            io.setControl(
+                    request
+                            .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                            .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                            .withTargetDirection(new Rotation2d(-speeds.vxMetersPerSecond, -speeds.vyMetersPerSecond)));
+        });
+    }
+
+    public Command pointTowardsPoint(
+            Supplier<Translation2d> desiredPoint, DoubleSupplier joystickX, DoubleSupplier joystickY) {
+        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
+                .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
+        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
+
+        return defer(
+                () -> run(() -> {
+                    Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
+
+                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
+                    io.setControl(
+                            request
+                                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                                    .withTargetDirection(targetAngle));
+                }));
     }
 
     @Override
@@ -170,87 +305,5 @@ public class Drive extends SubsystemBase {
             Logger.recordOutput(
                 "Vision/Summary/RobotPosesRejected", allRobotPosesRejected.toArray(new Pose3d[0]));
         }
-    }
-
-    public SwerveDriveState getState() {
-        return swerveInputs;
-    }
-
-    public Command applyRequest(Supplier<SwerveRequest> request) {
-        return run(() -> io.setControl(request.get()));
-    }
-
-    public Command joystickDrive(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickThetaX) {
-        FieldCentric request = new SwerveRequest.FieldCentric()
-        .withDeadband(MAX_DRIVE_SPEED * 0.05)
-        .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
-        .withDriveRequestType(DriveRequestType.Velocity);
-        return run(() -> {
-            io.setControl(
-                request
-                .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withRotationalRate(-joystickThetaX.getAsDouble() * MAX_ROTATIONAL_RATE)
-            );
-        });
-    }
-
-    public Command joystickDriveWithAssist(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickTheta) {
-        FieldCentric request = new SwerveRequest.FieldCentric()
-            .withDeadband(MAX_DRIVE_SPEED * 0.05)
-            .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
-            .withDriveRequestType(DriveRequestType.Velocity);
-        return run(()-> {
-
-            Pose2d[] relevent = Navgrid.getInstance().getRelevantNodes(getState().Pose, DRIVE_BASE_HYPOTONUSE * 1.5, nodes);
-            double xOffset = Navgrid.getInstance().xOffsetFromRelevantNodes(relevent) * Navgrid.getInstance().getCurrentMagnitude(joystickX.getAsDouble(), joystickY.getAsDouble());
-            double yOffset = Navgrid.getInstance().yOffsetFromRelevantNodes(relevent) * Navgrid.getInstance().getCurrentMagnitude(joystickX.getAsDouble(), joystickY.getAsDouble());
-
-            Logger.recordOutput("XOFF", xOffset);
-            Logger.recordOutput("yOFF", yOffset);
-
-            io.setControl(
-                request
-                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED + xOffset)
-                    .withVelocityY(joystickX.getAsDouble() * MAX_DRIVE_SPEED + yOffset)
-                    .withRotationalRate(-joystickTheta.getAsDouble() * MAX_ROTATIONAL_RATE));
-        });
-    }
-
-    public Command rotateOnMove(DoubleSupplier joystickX, DoubleSupplier joystickY, DoubleSupplier joystickTheta) {
-        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
-            .withDeadband(MAX_DRIVE_SPEED * 0.05)
-            .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05)
-            .withDriveRequestType(DriveRequestType.Velocity)
-            .withHeadingPID(1.5, 0, 0);
-        return run(() -> {
-            ChassisSpeeds speeds = ChassisSpeeds.fromRobotRelativeSpeeds(getState().Speeds, getState().Pose.getRotation());
-            io.setControl(
-                request
-                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withTargetDirection(new Rotation2d(-speeds.vxMetersPerSecond, -speeds.vyMetersPerSecond)));
-        });
-    }
-
-    public Command pointTowardsPoint(
-            Supplier<Translation2d> desiredPoint, DoubleSupplier joystickX, DoubleSupplier joystickY) {
-        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-            .withDeadband(MAX_DRIVE_SPEED * 0.05)
-            .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
-        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
-
-        return defer(
-            () -> run(() -> {
-                Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
-
-            Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
-            io.setControl(
-                request
-                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
-                    .withTargetDirection(targetAngle));
-        }));
     }
 }

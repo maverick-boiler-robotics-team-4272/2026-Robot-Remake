@@ -96,8 +96,18 @@ public class SubsystemConstants {
         public static final double ROTATION_I = 0;
         public static final double ROTATION_D = 0;
 
-        public static final ModuleConfig MODULE_CONFIG = new ModuleConfig(2, MAX_DRIVE_SPEED, WHEEL_COF,
-                DCMotor.getKrakenX60Foc(4), 50, 4);
+        // PathPlanner expects the wheel radius in meters, the motor model without
+        // gearing, the reduction, and the number of motors on each module.
+        // Match the Phoenix swerve configuration: 2 inch wheels, 6.538:1 gearing,
+        // and one Kraken X60 drive motor per module.
+        public static final ModuleConfig MODULE_CONFIG = new ModuleConfig(
+                TunerConstants.FrontLeft.WheelRadius,
+                MAX_DRIVE_SPEED,
+                WHEEL_COF,
+                DCMotor.getKrakenX60Foc(1),
+                TunerConstants.FrontLeft.DriveMotorGearRatio,
+                60,
+                1);
 
         @SuppressWarnings("unchecked")
         public static SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[] MODULE_CONSTANTS = new SwerveModuleConstants[] {

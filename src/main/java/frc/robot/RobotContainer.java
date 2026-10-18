@@ -118,7 +118,8 @@ public class RobotContainer {
 
   public Command getAutonomousCommand(){
     try {
-      return AutoBuilder.followPath(PathPlannerPath.fromPathFile("AUTO"));
+      // Load the named auto so its resetOdom setting and any auto-level commands run.
+      return new PathPlannerAuto("AUTO");
     } catch (Exception ex) {
       return Commands.print("Big oops: " + ex.getMessage());
     }

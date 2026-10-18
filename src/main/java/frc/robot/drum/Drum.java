@@ -30,6 +30,7 @@ public class Drum extends SubsystemBase {
         motorRDis.set(!inputs.motorRIsConnected);
         motorLDis.set(!inputs.motorLIsConnected);
         motorHoodDis.set(!inputs.motorHoodIsConnected);
+        Logger.recordOutput("Drum/Hood Angle", inputs.motorHoodPosition * 360);
     }
 
     public Command setDrumState(double rps, Rotation2d angle) {

@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
+import static frc.robot.constants.SubsystemConstants.CAN_BUS;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 
 
@@ -54,8 +55,8 @@ public class FeederIOReal implements FeederIO {
 
     public FeederIOReal() {
         
-        motorR = new TalonFX(motorRID);
-        motorL = new TalonFX(motorLID);
+        motorR = new TalonFX(motorRID, CAN_BUS);
+        motorL = new TalonFX(motorLID, CAN_BUS);
 
          Slot0Configs feedSlot0Configs = new Slot0Configs()
             .withKP(FEED_KP)

@@ -19,6 +19,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.VecBuilder;
@@ -54,7 +55,7 @@ public class Drive extends SubsystemBase {
     VisionIOInputsAutoLogged[] visionInputsList = {visionInputs};
     
     Pose2d[] nodes;
-    SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
+    SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds().withDriveRequestType(DriveRequestType.Velocity);
 
     public Drive(SwerveIO io, VisionIO... visionIOs) {
         this.io = io;
@@ -65,7 +66,6 @@ public class Drive extends SubsystemBase {
     }
 
     private void initPathPlanner() {
-        try {
             // TunerConstants...
             Translation2d[] moduleOffsets = new Translation2d[] {
                     new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
@@ -74,16 +74,13 @@ public class Drive extends SubsystemBase {
                     new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
                     new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
             };
-            RobotConfig config = new RobotConfig(ROBOT_MASS_KG, WHEEL_COF, MODULE_CONFIG, moduleOffsets);
+            RobotConfig config = new RobotConfig(ROBOT_MASS_KG, ROBOT_MOI, MODULE_CONFIG, moduleOffsets);
             AutoBuilder.configure(
-                    () -> getState().Pose, // Supplier of current robot pose
-                    io::resetPose, // Consumer for seeding pose against auto
-                    () -> getState().Speeds, // Supplier of current robot speeds
+                    this::getPose, // Supplier of current robot pose
+                    this::setPose, // Consumer for seeding pose against auto
+                    this::getChassisSpeeds, // Supplier of current robot speeds
                     // Consumer of ChassisSpeeds and feedforwards to drive the robot
-                    (speeds, feedforwards) -> io.setControl(
-                            m_pathApplyRobotSpeeds.withSpeeds(speeds)
-                                    .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-                                    .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())),
+                    this::runAutoSpeeds,
                     new PPHolonomicDriveController(
                             // PID constants for translation
                             new PIDConstants(DRIVE_P, DRIVE_I, DRIVE_D),
@@ -92,17 +89,32 @@ public class Drive extends SubsystemBase {
                     config,
                     // Assume the path needs to be flipped for Red vs Blue, this is normally the
                     // case
-                    () -> !FieldConstants.isRedSide(),
+                    () -> FieldConstants.isRedSide(),
                     this // Subsystem for requirements
             );
-        } catch (Exception ex) {
-            DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder",
-                    ex.getStackTrace());
-        }
     }
 
     public SwerveDriveState getState() {
         return swerveInputs;
+    }
+
+    public Pose2d getPose() {
+        return getState().Pose;
+    }
+
+    public void setPose(Pose2d pose) {
+        io.resetPose(pose);
+    }
+    
+    /** Robot-relative */
+    public ChassisSpeeds getChassisSpeeds() {
+        return getState().Speeds;
+    }
+
+    private void runAutoSpeeds(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
+        io.setControl(m_pathApplyRobotSpeeds.withSpeeds(speeds)
+        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons()));
     }
 
     public Command applyRequest(Supplier<SwerveRequest> request) {

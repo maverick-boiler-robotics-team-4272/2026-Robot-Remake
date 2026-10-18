@@ -84,6 +84,7 @@ public class SubsystemConstants {
         public static final double DRIVE_BASE_HALF_WIDTH = Math.abs(TunerConstants.FrontLeft.LocationY);
         public static final double ROBOT_MASS_KG = 68.4; 
         public static final double WHEEL_COF = 1.1;
+        public static final double ROBOT_MOI = 5.0;
         public static final double MAX_DRIVE_SPEED = TunerConstants.kSpeedAt12Volts.magnitude();
         public static final double MAX_ROTATIONAL_RATE = 8;
 

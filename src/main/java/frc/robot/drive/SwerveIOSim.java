@@ -60,13 +60,17 @@ public class SwerveIOSim extends SwerveIOCTRE {
     @Override
     public void resetPose(Pose2d pose) {
         drivetrainSim.setSimulationWorldPose(pose);
+        drivetrainSim.getGyroSimulation().setRotation(pose.getRotation());
+        updateGyroSim();
+        getPigeon2().setYaw(pose.getRotation().getDegrees());
         super.resetPose(pose);
     }
 
     @Override
     public void updateSwerveInputs(SwerveIOInputs inputs) {
-        super.updateSwerveInputs(inputs);
         updateGyroSim();
+        super.updateSwerveInputs(inputs);
+
         Pose2d realRobotPose = drivetrainSim.getSimulatedDriveTrainPose();
 
         Logger.recordOutput("Sim/Drive/RealPose", realRobotPose);
@@ -78,7 +82,7 @@ public class SwerveIOSim extends SwerveIOCTRE {
 
     private void updateGyroSim() {
         Pigeon2SimState pigeonSim = getPigeon2().getSimState();
-        pigeonSim.setRawYaw(drivetrainSim.getSimulatedDriveTrainPose().getRotation().getDegrees());
+        pigeonSim.setRawYaw(drivetrainSim.getGyroSimulation().getGyroReading().getDegrees());
         pigeonSim.setAngularVelocityZ(
             edu.wpi.first.math.util.Units.radiansToDegrees(drivetrainSim.getDriveTrainSimulatedChassisSpeedsFieldRelative().omegaRadiansPerSecond)
         );

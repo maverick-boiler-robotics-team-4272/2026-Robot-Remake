@@ -7,6 +7,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Newton;
 import static edu.wpi.first.units.Units.derive;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
+import static frc.robot.drive.VisionConstants.camera0Name;
+import static frc.robot.drive.VisionConstants.robotToCamera0;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -74,7 +76,7 @@ public class RobotContainer {
         break;
       case SIM :
         swerveIO =  new SwerveIOSim();
-        drive = new Drive(swerveIO);
+        drive = new Drive(swerveIO, new VisionIOPhotonVision(camera0Name, robotToCamera0));
         hoppah = new Hoppah(new HoppahIOSim());
         feeder = new Feeder(new FeederIOSim());
         drum = new Drum(new DrumIOSim());

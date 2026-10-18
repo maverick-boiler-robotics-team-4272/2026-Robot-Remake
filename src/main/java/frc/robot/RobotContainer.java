@@ -66,7 +66,7 @@ public class RobotContainer {
     switch (FieldConstants.currentMode) {
       case REAL:
         swerveIO = new SwerveIOCTRE();
-        drive = new Drive(swerveIO, new VisionIOPhotonVision("Limelight", VisionConstants.robotToCamera0));
+        drive = new Drive(swerveIO);
         hoppah = new Hoppah(new HoppahIOReal());
         feeder = new Feeder(new FeederIOReal());
         drum = new Drum(new DrumIOReal());
@@ -74,7 +74,7 @@ public class RobotContainer {
         break;
       case SIM :
         swerveIO =  new SwerveIOSim();
-        drive = new Drive(swerveIO,  new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
+        drive = new Drive(swerveIO);
         hoppah = new Hoppah(new HoppahIOSim());
         feeder = new Feeder(new FeederIOSim());
         drum = new Drum(new DrumIOSim());

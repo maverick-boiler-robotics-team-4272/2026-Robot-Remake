@@ -168,11 +168,6 @@ public class SwerveIOCTRE extends TunerSwerveDrivetrain implements SwerveIO {
     }
 
     @Override
-    public void resetPose(Pose2d pose) {
-        super.resetPose(pose);
-    }
-
-    @Override
     public void resetHeading() {
         this.resetRotation(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
     }

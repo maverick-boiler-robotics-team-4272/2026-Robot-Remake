@@ -15,25 +15,34 @@ import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
+  public static final AprilTagFieldLayout aprilTagLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Camera names, must match names configured on coprocessor
-  public static String camera0Name = "camera_0";
-  public static String camera1Name = "camera_1";
+  public static final String leftCameraName = "Thrifty-Left";
+  public static final String rightCameraName = "Thrifty-Right";
 
   // Robot to camera transforms
-  public static Transform3d robotToCamera0 =
-      new Transform3d(Units.inchesToMeters(5), 0.0, Units.inchesToMeters(0.15), new Rotation3d(Units.degreesToRadians(150), 0, Units.degreesToRadians(180)));
+  public static final Transform3d leftCameraTransform = new Transform3d(
+      Units.inchesToMeters(12.660),
+      Units.inchesToMeters(-12.289),
+      Units.inchesToMeters(15.076),
+      new Rotation3d(-Math.PI / 2, -Math.PI / 9, 0)); // Left side forward // 20 degrees
+
+  public static final Transform3d rightCameraTransform = new Transform3d(
+      Units.inchesToMeters(12.920),
+      Units.inchesToMeters(12.252),
+      Units.inchesToMeters(15.125),
+      new Rotation3d(Math.PI / 2, -Math.PI / 9, 0)); // Right side forward // 20 degrees
 
   // Basic filtering thresholds
-  public static double maxAmbiguity = 0.3;
-  public static double maxZError = 0.75;
+  public static double maxAmbiguity = 0.2;
+  public static double maxZError = 0.1;
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
-  public static double linearStdDevBaseline = 0.02; // Meters
-  public static double angularStdDevBaseline = 0.06; // Radians
+  public static double linearStdDevBaseline = 0.2; // Meters
+  public static double angularStdDevBaseline = 1; // Radians
 
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)

@@ -4,46 +4,20 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Newton;
-import static edu.wpi.first.units.Units.derive;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import static frc.robot.constants.FieldConstants.getHubLocation;
-import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
-import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.FieldConstants;
-import frc.robot.drive.Drive;
-import frc.robot.drive.SwerveIO;
-import frc.robot.drive.SwerveIOCTRE;
-import frc.robot.drive.SwerveIOSim;
-import frc.robot.drive.VisionConstants;
-import frc.robot.drive.VisionIO;
-import frc.robot.drive.VisionIOPhotonVision;
-import frc.robot.drive.VisionIOPhotonVisionSim;
-import frc.robot.hopper.HoppahIO;
-import frc.robot.hopper.Hoppah;
-import frc.robot.hopper.HoppahIOReal;
-import frc.robot.hopper.HoppahIOSim;
-import frc.robot.intake.Intake;
-import frc.robot.intake.IntakeIO;
-import frc.robot.intake.IntakeIOReal;
-import frc.robot.intake.IntakeIOSim;
-import frc.robot.feeder.Feeder;
-import frc.robot.feeder.FeederIO;
-import frc.robot.feeder.FeederIOReal;
-import frc.robot.feeder.FeederIOSim;
-import frc.robot.drum.Drum;
-import frc.robot.drum.DrumIO;
-import frc.robot.drum.DrumIOReal;
-import frc.robot.drum.DrumIOSim;
+import frc.robot.drive.*;
+import frc.robot.hopper.*;
+import frc.robot.intake.*;
+import frc.robot.feeder.*;
+import frc.robot.drum.*;
 
 public class RobotContainer {
   Drive drive;
@@ -60,7 +34,10 @@ public class RobotContainer {
     switch (FieldConstants.currentMode) {
       case REAL:
         swerveIO = new SwerveIOCTRE();
-        drive = new Drive(swerveIO, new VisionIOPhotonVision("Limelight", VisionConstants.robotToCamera0));
+        drive = new Drive(swerveIO, 
+          new VisionIOPhotonVision(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform),
+          new VisionIOPhotonVision(VisionConstants.rightCameraName, VisionConstants.rightCameraTransform)
+        );
         hoppah = new Hoppah(new HoppahIOReal());
         feeder = new Feeder(new FeederIOReal());
         drum = new Drum(new DrumIOReal());
@@ -69,9 +46,12 @@ public class RobotContainer {
       case SIM:
         swerveIO = new SwerveIOSim();
         drive = new Drive(swerveIO,
-            new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
-        drive = new Drive(new SwerveIOSim(),
-            new VisionIOPhotonVisionSim("Limelight", VisionConstants.robotToCamera0, () -> drive.getState().Pose));
+            new VisionIOPhotonVisionSim(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform, () -> swerveIO.getDriveSim().getSimulatedDriveTrainPose()),
+            new VisionIOPhotonVisionSim(VisionConstants.rightCameraName, VisionConstants.rightCameraTransform, () -> swerveIO.getDriveSim().getSimulatedDriveTrainPose())
+        );
+        hoppah = new Hoppah(new HoppahIOSim());
+        feeder = new Feeder(new FeederIOSim());
+        drum = new Drum(new DrumIOSim());
         intake = new Intake(new IntakeIOSim());
         break;
       default:
@@ -103,10 +83,10 @@ public class RobotContainer {
   private void configureBindings() {
     /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
     /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
-    joystick.rightTrigger().whileTrue(drum.setDrumState(100.0, Rotation2d.fromDegrees(10)));
+    joystick.rightTrigger().whileTrue(drum.setDrumState(100.0, Rotation2d.fromDegrees(30)));
     joystick.rightBumper().whileTrue(feeder.feedRun(-50)); // Changed to negative as a temp fix to cause to spin in the
                                                            // correct direction --mitchell
-    joystick.a().whileTrue(hoppah.setHoppahState(1000, 50));
+    joystick.a().whileTrue(hoppah.setHoppahState(50, 50));
   }
 
   public Command getAutonomousCommand() {

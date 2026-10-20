@@ -1,5 +1,6 @@
 package frc.robot.drive;
 
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.AutoLog;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -66,6 +67,8 @@ public interface SwerveIO {
     default void setStatorCurrentLimit(double limit) {}
 
     default void setSupplyCurrentLimit(double limit) {}
+
+    default SwerveDriveSimulation getDriveSim() {return null;}
 
     default void addVisionMeasurement(
         Pose2d visionRobotPoseMeters,

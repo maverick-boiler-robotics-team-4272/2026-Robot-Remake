@@ -107,7 +107,7 @@ public class SubsystemConstants {
         public static final double FEED_KD = 0.0;
         public static final double FEED_KS = 0.4;
         public static final double FEED_KV = 0.1243 * FEED_GEARING;
-        public static final boolean FEED_INVERTED = false;
+        public static final boolean FEED_INVERTED = true;
     }
 
  public static class HoppahConstants {
@@ -137,7 +137,7 @@ public class SubsystemConstants {
         public static final boolean DRUM_INVERTED = true;
     
         public static final double HOOD_GEARING = 348.0 * 24.0 / (16.0 * 11.0);
-        public static final double HOOD_KP = 300;
+        public static final double HOOD_KP = 100;
         public static final double HOOD_KD = 0.0;
         public static final double HOOD_KS = 0.4;
         public static final double HOOD_KV = 0.1243 * HOOD_GEARING;

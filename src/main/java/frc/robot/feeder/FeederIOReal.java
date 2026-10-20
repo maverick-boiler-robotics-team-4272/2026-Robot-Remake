@@ -71,10 +71,7 @@ public class FeederIOReal implements FeederIO {
                 feederConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(FEED_GEARING));
             feederConfig.withSlot0(feedSlot0Configs);
             feederConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(FEED_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
-            feederConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast));
-
+                .withInverted(FEED_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive).withNeutralMode(NeutralModeValue.Coast));
                 
         PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(feederConfig));
         PhoenixUtil.tryUntilOk(5, () -> motorR.getConfigurator().apply(feederConfig));
@@ -102,12 +99,8 @@ public class FeederIOReal implements FeederIO {
         motorRSupplyCurrent,
         motorRVelocityRPS,
         motorRSupplyVoltage,
-        motorROutputVolts,
-        motorLStatorCurrent,
-        motorLSupplyCurrent,
-        motorLVelocityRPS,
-        motorLSupplyVoltage,
-        motorLOutputVolts);
+        motorROutputVolts
+        );
 
         motorR.setControl(new Follower(motorL.getDeviceID(), MotorAlignmentValue.Opposed));
 

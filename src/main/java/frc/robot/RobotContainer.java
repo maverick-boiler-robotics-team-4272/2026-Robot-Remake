@@ -9,6 +9,7 @@ import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -70,6 +71,9 @@ public class RobotContainer {
     }
     configureBindings();
     setDefaultCommands();
+
+    SmartDashboard.putNumber("RPS", 30);
+    SmartDashboard.putNumber("Angle Deg", 10);
   }
 
   private void setDefaultCommands() {
@@ -84,9 +88,10 @@ public class RobotContainer {
     /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
     /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
     joystick.rightTrigger().whileTrue(drum.setDrumState(100.0, Rotation2d.fromDegrees(30)));
-    joystick.rightBumper().whileTrue(feeder.feedRun(-50)); // Changed to negative as a temp fix to cause to spin in the
+    joystick.rightBumper().whileTrue(feeder.feedRun(50)); // Changed to negative as a temp fix to cause to spin in the
                                                            // correct direction --mitchell
     joystick.a().whileTrue(hoppah.setHoppahState(50, 50));
+    joystick.x().whileTrue(drum.setDrumState(SmartDashboard.getNumber("RPS", 0), Rotation2d.fromDegrees(SmartDashboard.getNumber("Angle Deg", 0))));
   }
 
   public Command getAutonomousCommand() {

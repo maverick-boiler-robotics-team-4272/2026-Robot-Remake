@@ -151,7 +151,7 @@ public class RobotContainer {
                 1.0 - (bumpTimeSeconds / BUMP_SPEED_SCALE_TIME) * (1.0 - BUMP_SPEED_SCALE_MIN)
             ) : 1.0;
 
-            ChassisSpeeds speeds = new ChassisSpeeds(isRedSide() ? -joystick.getLeftY() * TunerConstants.kSpeedAt12Volts.magnitude() : joystick.getLeftY() * TunerConstants.kSpeedAt12Volts.magnitude(), isRedSide() ? joystick.getLeftX() * TunerConstants.kSpeedAt12Volts.magnitude(): -joystick.getLeftX() * TunerConstants.kSpeedAt12Volts.magnitude(), isRedSide() ? joystick.getRightX() *DriveConstants.MAX_ROTATIONAL_RATE : -joystick.getRightX() * DriveConstants.MAX_ROTATIONAL_RATE); //desired
+            ChassisSpeeds speeds = drive.getState().Speeds.times(2 * TunerConstants.kSpeedAt12Volts.magnitude());
 
             double newX = bumpVisualizationPose.getX() + speeds.vxMetersPerSecond * dt * speedScale;
             double newY = bumpVisualizationPose.getY() + speeds.vyMetersPerSecond * dt * speedScale;

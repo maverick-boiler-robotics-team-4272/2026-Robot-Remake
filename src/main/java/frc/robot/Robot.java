@@ -5,6 +5,7 @@
 package frc.robot;
 
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.evergreen.ArenaEvergreen;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -23,6 +24,7 @@ public class Robot extends LoggedRobot {
   private final RobotContainer m_robotContainer;
 
   public Robot() {
+    SimulatedArena.overrideInstance(new ArenaEvergreen(false));
     m_robotContainer = new RobotContainer();
 
     Logger.recordMetadata("CTREIO", "4272"); // Set a metadata value
@@ -97,7 +99,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {
-    m_robotContainer.updateSimulation();
+    SimulatedArena.getInstance().simulationPeriodic();
     Logger.recordOutput("Sim/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
   }
 

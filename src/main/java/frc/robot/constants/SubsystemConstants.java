@@ -89,11 +89,11 @@ public class SubsystemConstants {
         public static final double MAX_DRIVE_SPEED = TunerConstants.kSpeedAt12Volts.magnitude();
         public static final double MAX_ROTATIONAL_RATE = 8;
 
-        public static final double DRIVE_P = 6.25;
+        public static final double DRIVE_P = 5.0;
         public static final double DRIVE_I = 0;
         public static final double DRIVE_D = 0;
 
-        public static final double ROTATION_P = 6.25;
+        public static final double ROTATION_P = 5.0;
         public static final double ROTATION_I = 0;
         public static final double ROTATION_D = 0;
 

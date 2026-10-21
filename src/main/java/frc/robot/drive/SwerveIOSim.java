@@ -64,6 +64,7 @@ public class SwerveIOSim extends SwerveIOCTRE {
         updateGyroSim();
         getPigeon2().setYaw(pose.getRotation().getDegrees());
         super.resetPose(pose);
+
     }
 
     @Override

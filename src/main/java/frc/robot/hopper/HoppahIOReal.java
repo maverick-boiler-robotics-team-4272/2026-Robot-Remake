@@ -16,6 +16,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 
+import static frc.robot.constants.SubsystemConstants.CAN_BUS;
 import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
 
 import edu.wpi.first.math.filter.Debouncer;
@@ -63,9 +64,9 @@ public class HoppahIOReal implements HoppahIO {
     private final Debouncer motorBRIsConnected = new Debouncer(0.5);
 
     public HoppahIOReal() {
-        motorL = new TalonFX(motorLID);
-        motorBL = new TalonFX(motorBLID);
-        motorBR = new TalonFX(motorBRID);
+        motorL = new TalonFX(motorLID, CAN_BUS);
+        motorBL = new TalonFX(motorBLID, CAN_BUS);
+        motorBR = new TalonFX(motorBRID, CAN_BUS);
 
          Slot0Configs beltSlot0Configs = new Slot0Configs()
             .withKP(BELT_KP)
@@ -88,31 +89,39 @@ public class HoppahIOReal implements HoppahIO {
             beltConfig.withSlot0(beltSlot0Configs);
             beltConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(BELT_GEARING));
             beltConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(BELT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive));
-            beltConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast));
+                .withNeutralMode(NeutralModeValue.Coast).withInverted(InvertedValue.CounterClockwise_Positive));
 
-        var lowerBeltConfig = new TalonFXConfiguration();
-            lowerBeltConfig.withCurrentLimits(new CurrentLimitsConfigs()
-                .withSupplyCurrentLimit(30)
+            var lowerBeltConfigL = new TalonFXConfiguration();
+            lowerBeltConfigL.withCurrentLimits(new CurrentLimitsConfigs()
+                    .withSupplyCurrentLimit(60)
+                    .withSupplyCurrentLimitEnable(true));
+            lowerBeltConfigL.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
+            lowerBeltConfigL.withSlot0(feederSlot0Configs);
+            lowerBeltConfigL.withMotorOutput(new MotorOutputConfigs()
+                    .withInverted(InvertedValue.CounterClockwise_Positive));
+            lowerBeltConfigL.withMotorOutput(new MotorOutputConfigs()
+                    .withNeutralMode(NeutralModeValue.Coast));
+
+            var lowerBeltConfigR = new TalonFXConfiguration();
+            lowerBeltConfigR.withCurrentLimits(new CurrentLimitsConfigs()
+                    .withSupplyCurrentLimit(60)
                 .withSupplyCurrentLimitEnable(true));
-                lowerBeltConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
-            lowerBeltConfig.withSlot0(feederSlot0Configs);
-            lowerBeltConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(TOP_BELT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
-            lowerBeltConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast));
+            lowerBeltConfigR.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TOP_BELT_GEARING));
+            lowerBeltConfigR.withSlot0(feederSlot0Configs);
+            lowerBeltConfigR.withMotorOutput(new MotorOutputConfigs()
+                .withNeutralMode(NeutralModeValue.Coast)
+                .withInverted(InvertedValue.Clockwise_Positive));
 
         PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(beltConfig));
-        PhoenixUtil.tryUntilOk(5, () -> motorBL.getConfigurator().apply(lowerBeltConfig));
-        PhoenixUtil.tryUntilOk(5, () -> motorBR.getConfigurator().apply(lowerBeltConfig));
+        PhoenixUtil.tryUntilOk(5, () -> motorBL.getConfigurator().apply(lowerBeltConfigL));
+        PhoenixUtil.tryUntilOk(5, () -> motorBR.getConfigurator().apply(lowerBeltConfigR));
 
         motorBLStatorCurrent = motorBL.getStatorCurrent();
         motorBLSupplyCurrent = motorBL.getSupplyCurrent();
         motorBLVelocityRPS = motorBL.getVelocity();
         motorBLSupplyVoltage = motorBL.getSupplyVoltage();
         motorBLOutputVolts = motorBL.getMotorVoltage();
-       
+
         motorBRStatorCurrent = motorBR.getStatorCurrent();
         motorBRSupplyCurrent = motorBR.getSupplyCurrent();
         motorBRVelocityRPS = motorBR.getVelocity();
@@ -141,9 +150,7 @@ public class HoppahIOReal implements HoppahIO {
         motorLSupplyCurrent,
         motorLVelocityRPS,
         motorLSupplyVoltage,
-        motorLOutputVolts);
-
-        motorBR.setControl(new Follower(motorBL.getDeviceID(), MotorAlignmentValue.Aligned));
+                motorLOutputVolts);
     }
     
     public void updateInputs(HoppahIOInputs inputs) {
@@ -188,12 +195,14 @@ public class HoppahIOReal implements HoppahIO {
     @Override
     public void setHoppahState(double bottomSpin, double topSpin) {
         motorBL.setControl(control.withVelocity(bottomSpin));
+        motorBR.setControl(control.withVelocity(bottomSpin));
         motorL.setControl(control.withVelocity(topSpin));
     }
 
     @Override
     public void defaultState() {
         motorBL.setControl(voltControl);
+        motorBR.setControl(voltControl);
         motorL.setControl(voltControl);
     }
 }

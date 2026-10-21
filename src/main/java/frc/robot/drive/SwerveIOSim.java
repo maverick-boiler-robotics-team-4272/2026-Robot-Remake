@@ -76,6 +76,7 @@ public class SwerveIOSim extends SwerveIOCTRE {
         Logger.recordOutput("Sim/Drive/RealPose", realRobotPose);
     }
 
+    @Override
     public SwerveDriveSimulation getDriveSim() {
         return drivetrainSim;
     }

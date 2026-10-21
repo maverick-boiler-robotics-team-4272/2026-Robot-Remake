@@ -11,9 +11,10 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.util.PhoenixUtil;
 
 public class SubsystemConstants {
+    public static final CANBus CAN_BUS = new CANBus("CANdy Land"); // "" = roboRIO bus
+
     public static class IntakeConstants {
         // TODO: all values below are placeholders, replace with the real robot values.
-        // public static final CANBus CAN_BUS = new CANBus(""); // "" = roboRIO bus
 
         public static final int ROLLER_LEADER_ID = 20;
         public static final int ROLLER_FOLLOWER_ID = 21;
@@ -120,7 +121,7 @@ public class SubsystemConstants {
     public static class FeederConstants {
         public static final double FEEDER_RPS = 50;
         
-        public static final double FEED_GEARING = 11.0/24.0;
+        public static final double FEED_GEARING = 24.0/11.0;
         public static final double FEED_KP = 5;
         public static final double FEED_KD = 0.0;
         public static final double FEED_KS = 0.4;
@@ -129,14 +130,14 @@ public class SubsystemConstants {
     }
 
  public static class HoppahConstants {
-        public static final double BELT_GEARING = 11.0/24.0;
-        public static final double BELT_KP = 5;
+        public static final double BELT_GEARING = 24.0/11.0;
+        public static final double BELT_KP = 0.5;
         public static final double BELT_KD = 0.0;
         public static final double BELT_KS = 0.4;
         public static final double BELT_KV = 0.1243 * BELT_GEARING;
         public static final boolean BELT_INVERTED = true;
     
-        public static final double TOP_BELT_GEARING = 11.0/24.0;
+        public static final double TOP_BELT_GEARING = 24.0/11.0;
         public static final double TOP_BELT_KP = 300;
         public static final double TOP_BELT_KD = 0.0;
         public static final double TOP_BELT_KS = 0.4;
@@ -155,7 +156,7 @@ public class SubsystemConstants {
         public static final boolean DRUM_INVERTED = true;
     
         public static final double HOOD_GEARING = 348.0 * 24.0 / (16.0 * 11.0);
-        public static final double HOOD_KP = 300;
+        public static final double HOOD_KP = 100;
         public static final double HOOD_KD = 0.0;
         public static final double HOOD_KS = 0.4;
         public static final double HOOD_KV = 0.1243 * HOOD_GEARING;

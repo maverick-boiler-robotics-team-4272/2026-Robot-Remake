@@ -34,6 +34,7 @@ public class Hoppah extends SubsystemBase {
     @Override
     public void periodic() {
         io.updateInputs(hoppahInputs);
+        Logger.processInputs("Hoppah", hoppahInputs);
     }
     public Command hopRun() {
         return runEnd(

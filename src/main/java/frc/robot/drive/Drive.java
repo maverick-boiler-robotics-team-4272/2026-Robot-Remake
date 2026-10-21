@@ -43,7 +43,7 @@ import static frc.robot.constants.SubsystemConstants.DriveConstants.*;
 public class Drive extends SubsystemBase {
     SwerveIO io;
     SwerveIOInputsAutoLogged swerveInputs = new SwerveIOInputsAutoLogged();
-    VisionIOInputsAutoLogged visionInputs = new VisionIOInputsAutoLogged();
+    VisionIOInputsAutoLogged visionLeftInputs = new VisionIOInputsAutoLogged();
 
     ModuleIOInputsAutoLogged FLInputs = new ModuleIOInputsAutoLogged();
     ModuleIOInputsAutoLogged FRInputs = new ModuleIOInputsAutoLogged();
@@ -52,7 +52,7 @@ public class Drive extends SubsystemBase {
 
     ModuleIOInputsAutoLogged[] moduleInputs = {FLInputs, FRInputs, BLInputs, BRInputs};
     VisionIO[] cameras;
-    VisionIOInputsAutoLogged[] visionInputsList = {visionInputs};
+    VisionIOInputsAutoLogged[] visionInputsList = {visionLeftInputs};
     
     Pose2d[] nodes;
     SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds().withDriveRequestType(DriveRequestType.Velocity);
@@ -251,7 +251,7 @@ public class Drive extends SubsystemBase {
             // Loop over pose observations
             for (var observation : visionInputsList[cameraIndex].poseObservations) {
                 // Check whether to reject pose
-                boolean rejectPose =
+                boolean rejectPose = 
                     observation.tagCount() == 0 // Must have at least one tag
                         || (observation.tagCount() == 1
                             && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
@@ -289,7 +289,8 @@ public class Drive extends SubsystemBase {
                 }
 
                 io.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp(),  VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
-
+                // Log camera accepted pose
+                Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/cameraEstimatedPose", observation.pose().toPose2d());
                 // Log camera metadata
                 Logger.recordOutput(
                     "Vision/Camera" + Integer.toString(cameraIndex) + "/TagPoses",

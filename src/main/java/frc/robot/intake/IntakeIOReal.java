@@ -2,6 +2,7 @@
 package frc.robot.intake;
 
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
+import static frc.robot.constants.SubsystemConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;

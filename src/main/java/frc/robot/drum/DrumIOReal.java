@@ -26,6 +26,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.*;
 import frc.robot.util.PhoenixUtil;
 
+import static frc.robot.constants.SubsystemConstants.CAN_BUS;
 import static frc.robot.constants.SubsystemConstants.DrumConstants.*;
 
 public class DrumIOReal implements DrumIO {
@@ -69,7 +70,7 @@ public class DrumIOReal implements DrumIO {
     public DrumIOReal() {
         motorR = new TalonFX(motorRID);
         motorL = new TalonFX(motorLID);
-        motorHood = new TalonFX(motorHoodID);
+        motorHood = new TalonFX(motorHoodID,CAN_BUS);
 
         Slot0Configs drumSlot0Configs = new Slot0Configs()
             .withKP(DRUM_KP)

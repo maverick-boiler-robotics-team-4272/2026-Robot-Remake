@@ -1,5 +1,8 @@
 package frc.robot.drum;
 
+import java.util.function.DoubleSupplier;
+import java.util.stream.DoubleStream;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -42,7 +45,20 @@ public class Drum extends SubsystemBase {
         );
     }
 
+    public Command setDrumState(DoubleSupplier rps, DoubleSupplier deg) {
+        return runEnd(
+            () -> {
+                io.setDrumState(rps.getAsDouble(), Rotation2d.fromDegrees(deg.getAsDouble()));
+            },
+            () -> io.defaultState()
+        );
+    }
+
     public Command defaultCommand() {
         return run(() -> io.defaultState());
+    }
+
+    public Command resetHood() {
+        return runOnce(() -> io.reset()); //TODO: make reset actually run hood
     }
 }

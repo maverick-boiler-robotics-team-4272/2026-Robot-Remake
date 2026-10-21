@@ -34,7 +34,6 @@ public class Drive extends SubsystemBase {
     SwerveIO io;
     SwerveIOInputsAutoLogged swerveInputs = new SwerveIOInputsAutoLogged();
     VisionIOInputsAutoLogged visionLeftInputs = new VisionIOInputsAutoLogged();
-    VisionIOInputsAutoLogged visionRightInputs = new VisionIOInputsAutoLogged();
 
     ModuleIOInputsAutoLogged FLInputs = new ModuleIOInputsAutoLogged();
     ModuleIOInputsAutoLogged FRInputs = new ModuleIOInputsAutoLogged();
@@ -43,7 +42,7 @@ public class Drive extends SubsystemBase {
 
     ModuleIOInputsAutoLogged[] moduleInputs = {FLInputs, FRInputs, BLInputs, BRInputs};
     VisionIO[] cameras;
-    VisionIOInputsAutoLogged[] visionInputsList = {visionLeftInputs, visionRightInputs};
+    VisionIOInputsAutoLogged[] visionInputsList = {visionLeftInputs};
     
     Pose2d[] nodes;
 

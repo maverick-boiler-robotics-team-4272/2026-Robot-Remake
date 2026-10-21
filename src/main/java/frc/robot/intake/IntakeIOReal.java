@@ -2,6 +2,7 @@
 package frc.robot.intake;
 
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
+import static edu.wpi.first.units.Units.Rotations;
 import static frc.robot.constants.SubsystemConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -104,7 +105,7 @@ public class IntakeIOReal implements IntakeIO {
 
         rollerFollower.setControl(new Follower(
                 ROLLER_LEADER_ID,
-                ROLLER_FOLLOWER_OPPOSED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
+                MotorAlignmentValue.Opposed));
 
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, rollerSignals);
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, followerSignals);
@@ -142,6 +143,7 @@ public class IntakeIOReal implements IntakeIO {
     @Override
     public void setIntakeState(double rps, double angle) {
         rollerLeader.setControl(control.withVelocity(rps));
+        pivot.setControl(pivotPositionRequest.withPosition(angle / 360.0));
     }
 
     @Override

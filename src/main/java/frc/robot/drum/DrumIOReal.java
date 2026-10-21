@@ -104,9 +104,7 @@ public class DrumIOReal implements DrumIO {
                 hoodConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(HOOD_GEARING));
             hoodConfig.withSlot0(hoodSlot0Configs);
             hoodConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(HOOD_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
-            hoodConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast));
+                .withInverted(HOOD_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive).withNeutralMode(NeutralModeValue.Brake));
 
         PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(drumConfig));
         PhoenixUtil.tryUntilOk(5, () -> motorR.getConfigurator().apply(drumConfig));
@@ -209,5 +207,11 @@ public class DrumIOReal implements DrumIO {
     public void defaultState() {
         motorL.setControl(voltControl);
         motorHood.setControl(positionControl.withPosition(0));
+    }
+
+    @Override
+    public void reset() {
+        motorHood.setPosition(0);
+        motorL.setControl(voltControl);
     }
 }

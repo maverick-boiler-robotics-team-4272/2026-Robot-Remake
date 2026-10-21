@@ -89,7 +89,7 @@ public class HoppahIOReal implements HoppahIO {
             beltConfig.withSlot0(beltSlot0Configs);
             beltConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(BELT_GEARING));
             beltConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast).withInverted(InvertedValue.CounterClockwise_Positive));
+                .withNeutralMode(NeutralModeValue.Coast).withInverted(InvertedValue.Clockwise_Positive));
 
             var lowerBeltConfigL = new TalonFXConfiguration();
             lowerBeltConfigL.withCurrentLimits(new CurrentLimitsConfigs()

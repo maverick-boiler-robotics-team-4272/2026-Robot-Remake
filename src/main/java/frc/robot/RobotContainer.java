@@ -36,8 +36,7 @@ public class RobotContainer {
       case REAL:
         swerveIO = new SwerveIOCTRE();
         drive = new Drive(swerveIO, 
-          new VisionIOPhotonVision(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform),
-          new VisionIOPhotonVision(VisionConstants.rightCameraName, VisionConstants.rightCameraTransform)
+          new VisionIOPhotonVision(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform)
         );
         hoppah = new Hoppah(new HoppahIOReal());
         feeder = new Feeder(new FeederIOReal());
@@ -47,8 +46,7 @@ public class RobotContainer {
       case SIM:
         swerveIO = new SwerveIOSim();
         drive = new Drive(swerveIO,
-            new VisionIOPhotonVisionSim(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform, () -> swerveIO.getDriveSim().getSimulatedDriveTrainPose()),
-            new VisionIOPhotonVisionSim(VisionConstants.rightCameraName, VisionConstants.rightCameraTransform, () -> swerveIO.getDriveSim().getSimulatedDriveTrainPose())
+            new VisionIOPhotonVisionSim(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform, () -> swerveIO.getDriveSim().getSimulatedDriveTrainPose())
         );
         hoppah = new Hoppah(new HoppahIOSim());
         feeder = new Feeder(new FeederIOSim());
@@ -91,7 +89,8 @@ public class RobotContainer {
     joystick.rightBumper().whileTrue(feeder.feedRun(50)); // Changed to negative as a temp fix to cause to spin in the
                                                            // correct direction --mitchell
     joystick.a().whileTrue(hoppah.setHoppahState(50, 50));
-    joystick.x().whileTrue(drum.setDrumState(SmartDashboard.getNumber("RPS", 0), Rotation2d.fromDegrees(SmartDashboard.getNumber("Angle Deg", 0))));
+    joystick.x().whileTrue(drum.setDrumState(() -> SmartDashboard.getNumber("RPS", 0), () -> SmartDashboard.getNumber("Angle Deg", 0)));
+    joystick.povLeft().onTrue(drum.resetHood());
   }
 
   public Command getAutonomousCommand() {

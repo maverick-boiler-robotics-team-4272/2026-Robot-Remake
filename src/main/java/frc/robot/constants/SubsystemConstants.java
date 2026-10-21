@@ -28,10 +28,10 @@ public class SubsystemConstants {
         public static final DCMotor PIVOT_MOTOR = DCMotor.getKrakenX60Foc(1);
 
         /** Motor rotations per mechanism rotation. */
-        public static final double ROLLER_GEAR_RATIO = 1.0;
+        public static final double ROLLER_GEAR_RATIO = 1.5;
         public static final double PIVOT_GEAR_RATIO = 1.0;
 
-        public static final boolean ROLLER_INVERTED = false;
+        public static final boolean ROLLER_INVERTED = true;
         /** True if the follower spins opposite the leader (motors mounted facing each other). */
         public static final boolean ROLLER_FOLLOWER_OPPOSED = true;
         public static final boolean PIVOT_INVERTED = false;
@@ -46,8 +46,8 @@ public class SubsystemConstants {
         public static final double PIVOT_SUPPLY_LIMIT_AMPS = 30.0;
 
         // Roller velocity loop (units: volts per rotation/sec)
-        public static final double ROLLER_KP = 0.1;
-        public static final double ROLLER_KV = 0.12;
+        public static final double ROLLER_KP = 0.5;
+        public static final double ROLLER_KV = 0.12 * 1.5;
 
         // Pivot position loop (PositionVoltage; units: volts per rotation, volts per rotation/sec)
         public static final double PIVOT_KP = 30.0;
@@ -58,7 +58,7 @@ public class SubsystemConstants {
         public static final double PIVOT_DEPLOYED_ROTATIONS = 0.25;
         public static final double PIVOT_TOLERANCE_ROTATIONS = 0.02;
 
-        public static final double ROLLER_INTAKE_RPS = 50.0;
+        public static final double ROLLER_INTAKE_RPS = 66.66;
     }
 
     public static class DriveConstants {
@@ -103,7 +103,7 @@ public class SubsystemConstants {
         public static final double FEEDER_RPS = 50;
         
         public static final double FEED_GEARING = 24.0/11.0;
-        public static final double FEED_KP = 5;
+        public static final double FEED_KP = .5;
         public static final double FEED_KD = 0.0;
         public static final double FEED_KS = 0.4;
         public static final double FEED_KV = 0.1243 * FEED_GEARING;
@@ -130,9 +130,9 @@ public class SubsystemConstants {
 
     public static class DrumConstants {
         public static final double DRUM_GEARING = 1.0;
-        public static final double DRUM_KP = 5;
+        public static final double DRUM_KP = 0.0;
         public static final double DRUM_KD = 0.0;
-        public static final double DRUM_KS = 0.4;
+        public static final double DRUM_KS = 0.16;
         public static final double DRUM_KV = 0.1243 * DRUM_GEARING;
         public static final boolean DRUM_INVERTED = true;
     
@@ -141,7 +141,7 @@ public class SubsystemConstants {
         public static final double HOOD_KD = 0.0;
         public static final double HOOD_KS = 0.4;
         public static final double HOOD_KV = 0.1243 * HOOD_GEARING;
-        public static final boolean HOOD_INVERTED = true;
+        public static final boolean HOOD_INVERTED = false;
         
     }
 }

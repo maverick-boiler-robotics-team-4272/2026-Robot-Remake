@@ -20,7 +20,6 @@ public class VisionConstants {
 
   // Camera names, must match names configured on coprocessor
   public static final String leftCameraName = "Thrifty-Left";
-  public static final String rightCameraName = "Thrifty-Right";
 
   // Robot to camera transforms
   public static final Transform3d leftCameraTransform = new Transform3d(
@@ -28,12 +27,6 @@ public class VisionConstants {
       Units.inchesToMeters(-12.289),
       Units.inchesToMeters(15.076),
       new Rotation3d(-Math.PI / 2, -Math.PI / 9, 0)); // Left side forward // 20 degrees
-
-  public static final Transform3d rightCameraTransform = new Transform3d(
-      Units.inchesToMeters(12.920),
-      Units.inchesToMeters(12.252),
-      Units.inchesToMeters(15.125),
-      new Rotation3d(Math.PI / 2, -Math.PI / 9, 0)); // Right side forward // 20 degrees
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.2;

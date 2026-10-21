@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
+import static frc.robot.constants.SubsystemConstants.CAN_BUS;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 
 
@@ -54,8 +55,8 @@ public class FeederIOReal implements FeederIO {
 
     public FeederIOReal() {
         
-        motorR = new TalonFX(motorRID);
-        motorL = new TalonFX(motorLID);
+        motorR = new TalonFX(motorRID, CAN_BUS);
+        motorL = new TalonFX(motorLID, CAN_BUS);
 
          Slot0Configs feedSlot0Configs = new Slot0Configs()
             .withKP(FEED_KP)
@@ -70,10 +71,7 @@ public class FeederIOReal implements FeederIO {
                 feederConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(FEED_GEARING));
             feederConfig.withSlot0(feedSlot0Configs);
             feederConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(FEED_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.Clockwise_Positive));
-            feederConfig.withMotorOutput(new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Coast));
-
+                .withInverted(FEED_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive).withNeutralMode(NeutralModeValue.Coast));
                 
         PhoenixUtil.tryUntilOk(5, () -> motorL.getConfigurator().apply(feederConfig));
         PhoenixUtil.tryUntilOk(5, () -> motorR.getConfigurator().apply(feederConfig));
@@ -101,12 +99,8 @@ public class FeederIOReal implements FeederIO {
         motorRSupplyCurrent,
         motorRVelocityRPS,
         motorRSupplyVoltage,
-        motorROutputVolts,
-        motorLStatorCurrent,
-        motorLSupplyCurrent,
-        motorLVelocityRPS,
-        motorLSupplyVoltage,
-        motorLOutputVolts);
+        motorROutputVolts
+        );
 
         motorR.setControl(new Follower(motorL.getDeviceID(), MotorAlignmentValue.Opposed));
 

@@ -4,11 +4,13 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Newton;
-import static edu.wpi.first.units.Units.derive;
+import static frc.robot.constants.FieldConstants.isRedSide;
 import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
-import static frc.robot.drive.VisionConstants.camera0Name;
-import static frc.robot.drive.VisionConstants.robotToCamera0;
+
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
+import org.opencv.objdetect.CharucoBoard;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -23,36 +25,29 @@ import static frc.robot.constants.FieldConstants.getHubLocation;
 import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
 import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
 
+import com.google.flatbuffers.Constants;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.FieldConstants;
-import frc.robot.drive.Drive;
-import frc.robot.drive.SwerveIO;
-import frc.robot.drive.SwerveIOCTRE;
-import frc.robot.drive.SwerveIOSim;
-import frc.robot.drive.VisionConstants;
-import frc.robot.drive.VisionIO;
-import frc.robot.drive.VisionIOPhotonVision;
-import frc.robot.drive.VisionIOPhotonVisionSim;
-import frc.robot.hopper.HoppahIO;
-import frc.robot.hopper.Hoppah;
-import frc.robot.hopper.HoppahIOReal;
-import frc.robot.hopper.HoppahIOSim;
-import frc.robot.intake.Intake;
-import frc.robot.intake.IntakeIO;
-import frc.robot.intake.IntakeIOReal;
-import frc.robot.intake.IntakeIOSim;
-import frc.robot.feeder.Feeder;
-import frc.robot.feeder.FeederIO;
-import frc.robot.feeder.FeederIOReal;
-import frc.robot.feeder.FeederIOSim;
-import frc.robot.drum.Drum;
-import frc.robot.drum.DrumIO;
-import frc.robot.drum.DrumIOReal;
-import frc.robot.drum.DrumIOSim;
+import frc.robot.constants.TunerConstants;
+import frc.robot.constants.SubsystemConstants.DriveConstants;
+import frc.robot.drive.*;
+import frc.robot.hopper.*;
+import frc.robot.intake.*;
+import frc.robot.util.FuelUtil;
+import frc.robot.util.bump.Bump;
+import frc.robot.util.bump.BumpUtil;
+import frc.robot.feeder.*;
+import frc.robot.drum.*;
 
 public class RobotContainer {
   Drive drive;
@@ -62,13 +57,25 @@ public class RobotContainer {
   Intake intake;
   SwerveIOCTRE swerveIO = null;
 
+  //bump stuff
+  private static final double BUMP_SPEED_SCALE_MIN = 0.2; // minimum speed multiplier
+  private static final double BUMP_SPEED_SCALE_TIME = 0.75; // seconds to reach minimum
+  private BumpUtil bump = null;
+  private boolean wasOnBump = false;
+  private Pose2d bumpVisualizationPose = null;
+  private double lastBumpUpdateTime = -1;
+  private double bumpTimeSeconds = 0.0;
+
   private static final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   public static final CommandXboxController joystick = new CommandXboxController(0);
+
   public RobotContainer() {
     switch (FieldConstants.currentMode) {
       case REAL:
         swerveIO = new SwerveIOCTRE();
-        drive = new Drive(swerveIO);
+        drive = new Drive(swerveIO, 
+          new VisionIOPhotonVision(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform)
+        );
         hoppah = new Hoppah(new HoppahIOReal());
         feeder = new Feeder(new FeederIOReal());
         drum = new Drum(new DrumIOReal());
@@ -76,22 +83,32 @@ public class RobotContainer {
         break;
       case SIM :
         swerveIO =  new SwerveIOSim();
-        drive = new Drive(swerveIO, new VisionIOPhotonVision(camera0Name, robotToCamera0));
+        drive = new Drive(swerveIO, new VisionIOPhotonVision(VisionConstants.leftCameraName, VisionConstants.leftCameraTransform));
         hoppah = new Hoppah(new HoppahIOSim());
         feeder = new Feeder(new FeederIOSim());
         drum = new Drum(new DrumIOSim());
         intake = new Intake(new IntakeIOSim());
+        bump = new BumpUtil(() -> swerveIO.getDriveSim().getSimulatedDriveTrainPose(), this::getBumpPose);
         break;
       default:
-        drive = new Drive(new SwerveIO() {}, new VisionIO() {});
-        hoppah = new Hoppah(new HoppahIO() {});
-        feeder = new Feeder(new FeederIO() {});
-        drum = new Drum(new DrumIO() {});
-        intake = new Intake(new IntakeIO() {});
+        drive = new Drive(new SwerveIO() {
+        }, new VisionIO() {
+        });
+        hoppah = new Hoppah(new HoppahIO() {
+        });
+        feeder = new Feeder(new FeederIO() {
+        });
+        drum = new Drum(new DrumIO() {
+        });
+        intake = new Intake(new IntakeIO() {
+        });
         break;
     }
     configureBindings();
     setDefaultCommands();
+
+    SmartDashboard.putNumber("RPS", 30);
+    SmartDashboard.putNumber("Angle Deg", 10);
   }
 
   private void setDefaultCommands() {
@@ -101,22 +118,116 @@ public class RobotContainer {
     drum.setDefaultCommand(drum.defaultCommand());
     intake.setDefaultCommand(intake.defaultCommand());
   }
+
   private void configureBindings() {
     /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
     /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
-    /* Shoot */ joystick.rightTrigger().whileTrue(new ParallelCommandGroup(
-      drum.setDrumState(40, Rotation2d.fromDegrees(20)),
-      feeder.feedRun(FEEDER_RPS),
-      hoppah.hopRun(),
-      drive.applyRequest(() -> brake)
-    ));
-    /* Rev */ joystick.rightBumper().whileTrue(new ParallelCommandGroup(
-      drum.setDrumState(40, Rotation2d.fromDegrees(20)),
-      feeder.feedRun(-FEEDER_RPS * 0.3),
-      hoppah.setHoppahState(-HOPPAH_RPS * 0.75, HOPPAH_RPS),
-      drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystick::getLeftX, joystick::getLeftY)
-    ));
+    joystick.rightTrigger().whileTrue(drum.setDrumState(100.0, Rotation2d.fromDegrees(30)));
+    joystick.rightBumper().whileTrue(feeder.feedRun(50)); // Changed to negative as a temp fix to cause to spin in the
+                                                           // correct direction --mitchell
+    joystick.a().whileTrue(hoppah.setHoppahState(50, 50));
+    joystick.x().whileTrue(drum.setDrumState(SmartDashboard.getNumber("RPS", 0), Rotation2d.fromDegrees(SmartDashboard.getNumber("Angle Deg", 0))));
   }
+
+    private Pose2d getBumpPose() {
+        if (bump != null && bump.isOnBump()) {
+            wasOnBump = true;
+            double now = Timer.getFPGATimestamp();
+
+            if (bumpVisualizationPose == null) {
+                bumpVisualizationPose = swerveIO.getDriveSim().getSimulatedDriveTrainPose();
+                lastBumpUpdateTime = now;
+                bumpTimeSeconds = 0.0;
+                return bumpVisualizationPose;
+            }
+
+            double dt = now - lastBumpUpdateTime;
+            lastBumpUpdateTime = now;
+
+            boolean isOnPhysicalBump = false;
+            for (Bump b : Bump.BUMPS) {
+                if (b.isInPhysicalBump(swerveIO.getDriveSim().getSimulatedDriveTrainPose())) {
+                    isOnPhysicalBump = true;
+                    break;
+                }
+            }
+
+            if (isOnPhysicalBump) {
+                bumpTimeSeconds += dt;
+            }
+
+            double speedScale = isOnPhysicalBump ? Math.max(
+                BUMP_SPEED_SCALE_MIN,
+                1.0 - (bumpTimeSeconds / BUMP_SPEED_SCALE_TIME) * (1.0 - BUMP_SPEED_SCALE_MIN)
+            ) : 1.0;
+
+            ChassisSpeeds speeds = drive.getState().Speeds.times(2 * TunerConstants.kSpeedAt12Volts.magnitude());
+
+            double newX = bumpVisualizationPose.getX() + speeds.vxMetersPerSecond * dt * speedScale;
+            double newY = bumpVisualizationPose.getY() + speeds.vyMetersPerSecond * dt * speedScale;
+
+            for (Bump b : Bump.BUMPS) {
+                if (b.isInBump(bumpVisualizationPose)) {
+                    double minY = Math.min(b.getCorner1().getY(), b.getCorner2().getY());
+                    double maxY = Math.max(b.getCorner1().getY(), b.getCorner2().getY());
+                    newY = MathUtil.clamp(newY, minY, maxY);
+                    break;
+                }
+            }
+
+            Rotation2d newHeading = bumpVisualizationPose.getRotation()
+                .plus(Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * dt));
+
+            bumpVisualizationPose = new Pose2d(newX, newY, newHeading);
+            return bumpVisualizationPose;
+        }
+
+        bumpVisualizationPose = null;
+        lastBumpUpdateTime = -1;
+        bumpTimeSeconds = 0.0;
+        return swerveIO.getDriveSim().getSimulatedDriveTrainPose();
+    }
+
+    public void updateSimulation() {
+        if(Robot.isReal()) return;
+
+        Pose3d bumpRobotPose = bump.bumpVisualizePose();
+
+        if (bump.isOnBump() && bumpVisualizationPose != null) {
+            for (Bump b : Bump.BUMPS) {
+                if (b.isInBump(bumpVisualizationPose)) {
+                    double minY = Math.min(b.getCorner1().getY(), b.getCorner2().getY()) + 0.065;
+                    double maxY = Math.max(b.getCorner1().getY(), b.getCorner2().getY()) - 0.06;
+                    double clampedY = MathUtil.clamp(bumpVisualizationPose.getY(), minY, maxY);
+                    bumpVisualizationPose = new Pose2d(
+                        bumpVisualizationPose.getX(), 
+                        clampedY, 
+                        bumpVisualizationPose.getRotation());
+                    swerveIO.getDriveSim().setSimulationWorldPose(bumpVisualizationPose);
+                    break;
+                }
+            }
+        }
+
+        bump.updateChecks(bumpVisualizationPose);
+
+        SimulatedArena.getInstance().simulationPeriodic();
+
+        for(Bump b : Bump.BUMPS) {
+            if(wasOnBump && !b.isInBump(bumpRobotPose.toPose2d())) {
+                swerveIO.getDriveSim().setSimulationWorldPose(bumpRobotPose.toPose2d());
+                wasOnBump = false;
+                break;
+            }
+        }
+        
+        // Pose3d[] robotFuel = FuelUtil.getFuelPosesFromRobot(bumpRobotPose, intake.getFuelCount(), intake.getExtendDistance());
+
+        Logger.recordOutput("Sim/Robot/Real Sim Pose", bumpRobotPose);
+        // Logger.recordOutput("Simulation/Fuel/Fuel in robot", robotFuel);
+        // Logger.recordOutput("Simulation/Fuel/Fuel on field", fuel);
+        // Logger.recordOutput("Simulation/Fuel/Fuel on fly", LaunchCalculator.simulatePoses(bumpRobotPose, shooter.getCurrentLaunchParameters()));
+    }
 
   public Command getAutonomousCommand(){
     try {

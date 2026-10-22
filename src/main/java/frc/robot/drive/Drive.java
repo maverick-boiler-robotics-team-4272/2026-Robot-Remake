@@ -190,7 +190,7 @@ public class Drive extends SubsystemBase {
                 () -> run(() -> {
                     Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
 
-                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
+                    Rotation2d targetAngle = delta.getAngle();
                     io.setControl(
                             request
                                     .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)

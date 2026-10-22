@@ -17,6 +17,7 @@ import java.text.ParseException;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
@@ -36,6 +37,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants;
@@ -94,6 +99,7 @@ public class RobotContainer {
     }
     configureBindings();
     setDefaultCommands();
+    registeredNamedCommands();
 
     SmartDashboard.putNumber("RPS", 30);
     SmartDashboard.putNumber("Angle Deg", 10);
@@ -105,6 +111,25 @@ public class RobotContainer {
     feeder.setDefaultCommand(feeder.defaultCommand());
     drum.setDefaultCommand(drum.defaultCommand());
     intake.setDefaultCommand(intake.defaultCommand());
+  }
+
+  private void registeredNamedCommands() {
+    NamedCommands.registerCommand("intake",intake.setIntake(ROLLER_FOLLOWER_ID, PIVOT_DEPLOYED_ROTATIONS));
+    NamedCommands.registerCommand("shoot", new SequentialCommandGroup(
+      new ParallelRaceGroup(
+        drive.pointTowardsPoint(()->getHubLocation().getTranslation(), ()->0, ()->0),
+        drum.setDrumState(6.7, Rotation2d.fromDegrees(10.0)),
+        feeder.feedRun(-26.7),
+        new WaitCommand(0.75)),
+      new ParallelRaceGroup(
+        drive.applyRequest(()->brake),
+        drum.setDrumState(6.7, Rotation2d.fromDegrees(10.0)),
+        feeder.feedRun(FEEDER_RPS),
+        hoppah.hopRun(),
+        intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS),
+        new WaitCommand(2.67))
+      )
+    );
   }
 
   private void configureBindings() {
@@ -120,7 +145,7 @@ public class RobotContainer {
   public Command getAutonomousCommand(){
     try {
       // Load the named auto so its resetOdom setting and any auto-level commands run.
-      return new PathPlannerAuto("AUTO");
+      return new PathPlannerAuto("2.5 pass far");
     } catch (Exception ex) {
       return Commands.print("Big oops: " + ex.getMessage());
     }

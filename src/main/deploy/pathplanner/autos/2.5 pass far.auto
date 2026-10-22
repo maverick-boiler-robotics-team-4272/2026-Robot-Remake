@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "race",
           "data": {
             "commands": [
               {
@@ -17,7 +17,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": null
+                  "name": "intake"
                 }
               }
             ]
@@ -26,7 +26,32 @@
         {
           "type": "named",
           "data": {
-            "name": null
+            "name": "shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Path 2 far"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
           }
         },
         {
@@ -42,16 +67,10 @@
               {
                 "type": "named",
                 "data": {
-                  "name": null
+                  "name": "intake"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": null
           }
         }
       ]

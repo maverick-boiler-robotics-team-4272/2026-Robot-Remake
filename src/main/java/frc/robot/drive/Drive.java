@@ -89,7 +89,7 @@ public class Drive extends SubsystemBase {
                     config,
                     // Assume the path needs to be flipped for Red vs Blue, this is normally the
                     // case
-                    () -> FieldConstants.isRedSide(),
+                    () -> !FieldConstants.isRedSide(), //autos are written on the red side
                     this // Subsystem for requirements
             );
     }

@@ -25,7 +25,7 @@ public class VisionConstants {
   public static final Transform3d leftCameraTransform = new Transform3d(
       Units.inchesToMeters(12.660),
       Units.inchesToMeters(-12.289),
-      Units.inchesToMeters(15.076),
+      Units.inchesToMeters(14.75), //15.076
       new Rotation3d(-Math.PI / 2, -Math.PI / 9, 0)); // Left side forward // 20 degrees
 
   // Basic filtering thresholds

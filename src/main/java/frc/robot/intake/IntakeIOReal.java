@@ -28,9 +28,9 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
 public class IntakeIOReal implements IntakeIO {
-    private final TalonFX rollerLeader = new TalonFX(ROLLER_LEADER_ID, CAN_BUS);
-    private final TalonFX rollerFollower = new TalonFX(ROLLER_FOLLOWER_ID, CAN_BUS);
-    private final TalonFX pivot = new TalonFX(PIVOT_ID, CAN_BUS);
+    private final TalonFX rollerLeader = new TalonFX(ROLLER_LEADER_ID);
+    private final TalonFX rollerFollower = new TalonFX(ROLLER_FOLLOWER_ID);
+    private final TalonFX pivot = new TalonFX(PIVOT_ID);
 
     private final VelocityVoltage rollerVelocityRequest = new VelocityVoltage(0.0).withEnableFOC(true);
     private final PositionVoltage pivotPositionRequest = new PositionVoltage(0.0).withEnableFOC(true);

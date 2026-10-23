@@ -4,6 +4,7 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
+import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -84,12 +85,30 @@ public class SubsystemConstants {
         public static final double DRIVE_BASE_HALF_WIDTH = Math.abs(TunerConstants.FrontLeft.LocationY);
         public static final double ROBOT_MASS_KG = 68.4; 
         public static final double WHEEL_COF = 1.1;
+        public static final double ROBOT_MOI = 5.0;
         public static final double MAX_DRIVE_SPEED = TunerConstants.kSpeedAt12Volts.magnitude();
         public static final double MAX_ROTATIONAL_RATE = 8;
 
-        public static final double ROTATION_P = 6.25;
+        public static final double DRIVE_P = 5.0;
+        public static final double DRIVE_I = 0;
+        public static final double DRIVE_D = 0;
+
+        public static final double ROTATION_P = 5.0;
         public static final double ROTATION_I = 0;
         public static final double ROTATION_D = 0;
+
+        // PathPlanner expects the wheel radius in meters, the motor model without
+        // gearing, the reduction, and the number of motors on each module.
+        // Match the Phoenix swerve configuration: 2 inch wheels, 6.538:1 gearing,
+        // and one Kraken X60 drive motor per module.
+        public static final ModuleConfig MODULE_CONFIG = new ModuleConfig(
+                TunerConstants.FrontLeft.WheelRadius,
+                MAX_DRIVE_SPEED,
+                WHEEL_COF,
+                DCMotor.getKrakenX60Foc(1),
+                TunerConstants.FrontLeft.DriveMotorGearRatio,
+                60,
+                1);
 
         @SuppressWarnings("unchecked")
         public static SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[] MODULE_CONSTANTS = new SwerveModuleConstants[] {

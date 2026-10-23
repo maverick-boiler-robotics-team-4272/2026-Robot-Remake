@@ -5,6 +5,9 @@
 package frc.robot;
 
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.evergreen.ArenaEvergreen;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltHub;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -23,6 +26,7 @@ public class Robot extends LoggedRobot {
   private final RobotContainer m_robotContainer;
 
   public Robot() {
+    SimulatedArena.overrideInstance(new Arena2026Rebuilt(false));
     m_robotContainer = new RobotContainer();
 
     Logger.recordMetadata("CTREIO", "4272"); // Set a metadata value
@@ -49,7 +53,9 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    // if(isSimulation()) FuelUtil.fullFieldReset();
+  }
 
   @Override
   public void disabledPeriodic() {}
@@ -92,7 +98,7 @@ public class Robot extends LoggedRobot {
 
   @Override 
   public void simulationInit() {
-    FuelUtil.fullFieldReset();
+    // FuelUtil.fullFieldReset();
   }
 
   @Override

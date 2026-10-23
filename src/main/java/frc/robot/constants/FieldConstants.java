@@ -22,10 +22,9 @@ public class FieldConstants {
     }
 
     public static boolean isRedSide() {
-        if(DriverStation.getAlliance().get() == Alliance.Red && DriverStation.getAlliance().isPresent()) {
-            return false;
-        }
-        return true;
+        return DriverStation.getAlliance()
+                .map(alliance -> alliance == Alliance.Red)
+                .orElse(false);
     }
 
     public static final double FIELD_LENGTH_M = 16.54;

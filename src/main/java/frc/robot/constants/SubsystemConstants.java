@@ -22,7 +22,6 @@ public class SubsystemConstants {
 
         public static final int ROLLER_LEADER_ID = 20;
         public static final int ROLLER_FOLLOWER_ID = 21;
-        public static final int PIVOT_ID = 22;
 
         /** Number of roller motors (leader + follower). */
         public static final int ROLLER_MOTOR_COUNT = 2;
@@ -30,40 +29,22 @@ public class SubsystemConstants {
         // Motor model used by the sim, chosen per mechanism. Swap to getKrakenX44Foc(...) if a
         // mechanism uses X44s. The real IO is identical for both (TalonFX).
         public static final DCMotor ROLLER_MOTORS = DCMotor.getKrakenX60Foc(ROLLER_MOTOR_COUNT);
-        public static final DCMotor PIVOT_MOTOR = DCMotor.getKrakenX60Foc(1);
 
         /** Motor rotations per mechanism rotation. */
         public static final double ROLLER_GEAR_RATIO = 1.5;
-        public static final double PIVOT_GEAR_RATIO = 1.0;
 
         public static final boolean ROLLER_INVERTED = true;
         /** True if the follower spins opposite the leader (motors mounted facing each other). */
         public static final boolean ROLLER_FOLLOWER_OPPOSED = true;
-        public static final boolean PIVOT_INVERTED = false;
-
-        /** Pivot software limits, in mechanism rotations (after PIVOT_GEAR_RATIO). Motor output is cut past these. */
-        public static final double PIVOT_FORWARD_LIMIT_ROTATIONS = 0.30;
-        public static final double PIVOT_REVERSE_LIMIT_ROTATIONS = -0.02;
 
         public static final double ROLLER_STATOR_LIMIT_AMPS = 60.0;
         public static final double ROLLER_SUPPLY_LIMIT_AMPS = 40.0;
-        public static final double PIVOT_STATOR_LIMIT_AMPS = 40.0;
-        public static final double PIVOT_SUPPLY_LIMIT_AMPS = 30.0;
 
         // Roller velocity loop (units: volts per rotation/sec)
         public static final double ROLLER_KP = 0.5;
         public static final double ROLLER_KV = 0.12 * 1.5;
 
-        // Pivot position loop (PositionVoltage; units: volts per rotation, volts per rotation/sec)
-        public static final double PIVOT_KP = 30.0;
-        public static final double PIVOT_KD = 0.5;
-
-        /** Pivot positions in mechanism rotations; must sit inside the soft limits above. */
-        public static final double PIVOT_STOWED_ROTATIONS = 0.0;
-        public static final double PIVOT_DEPLOYED_ROTATIONS = 0.25;
-        public static final double PIVOT_TOLERANCE_ROTATIONS = 0.02;
-
-        public static final double ROLLER_INTAKE_RPS = 66.66;
+        public static final double ROLLER_INTAKE_RPS = 70;
     }
 
     public static class DriveConstants {

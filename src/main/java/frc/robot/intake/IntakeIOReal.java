@@ -28,9 +28,8 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
 public class IntakeIOReal implements IntakeIO {
-    private final TalonFX rollerLeader = new TalonFX(ROLLER_LEADER_ID);
-    private final TalonFX rollerFollower = new TalonFX(ROLLER_FOLLOWER_ID);
-    private final TalonFX pivot = new TalonFX(PIVOT_ID);
+    private final TalonFX rollerLeader = new TalonFX(ROLLER_LEADER_ID, CAN_BUS);
+    private final TalonFX rollerFollower = new TalonFX(ROLLER_FOLLOWER_ID, CAN_BUS);
 
     private final VelocityVoltage rollerVelocityRequest = new VelocityVoltage(0.0).withEnableFOC(true);
     private final PositionVoltage pivotPositionRequest = new PositionVoltage(0.0).withEnableFOC(true);
@@ -48,21 +47,11 @@ public class IntakeIOReal implements IntakeIO {
     private final StatusSignal<Current> followerSupplyCurrent = rollerFollower.getSupplyCurrent();
     private final StatusSignal<Temperature> followerTemp = rollerFollower.getDeviceTemp();
 
-    private final StatusSignal<Angle> pivotPosition = pivot.getPosition();
-    private final StatusSignal<AngularVelocity> pivotVelocity = pivot.getVelocity();
-    private final StatusSignal<Voltage> pivotAppliedVolts = pivot.getMotorVoltage();
-    private final StatusSignal<Current> pivotStatorCurrent = pivot.getStatorCurrent();
-    private final StatusSignal<Current> pivotSupplyCurrent = pivot.getSupplyCurrent();
-    private final StatusSignal<Temperature> pivotTemp = pivot.getDeviceTemp();
-
     private final BaseStatusSignal[] rollerSignals = {
         rollerVelocity, rollerAppliedVolts, rollerStatorCurrent, rollerSupplyCurrent, rollerTemp
     };
     private final BaseStatusSignal[] followerSignals = {
         followerVelocity, followerAppliedVolts, followerStatorCurrent, followerSupplyCurrent, followerTemp
-    };
-    private final BaseStatusSignal[] pivotSignals = {
-        pivotPosition, pivotVelocity, pivotAppliedVolts, pivotStatorCurrent, pivotSupplyCurrent, pivotTemp
     };
 
     //control requests
@@ -82,26 +71,9 @@ public class IntakeIOReal implements IntakeIO {
         rollerConfig.Slot0.kP = ROLLER_KP;
         rollerConfig.Slot0.kV = ROLLER_KV;
 
-        var pivotConfig = new TalonFXConfiguration();
-        pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        pivotConfig.MotorOutput.Inverted =
-                PIVOT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
-        pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
-        pivotConfig.CurrentLimits.StatorCurrentLimit = PIVOT_STATOR_LIMIT_AMPS;
-        pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        pivotConfig.CurrentLimits.SupplyCurrentLimit = PIVOT_SUPPLY_LIMIT_AMPS;
-        pivotConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = PIVOT_FORWARD_LIMIT_ROTATIONS;
-        pivotConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = PIVOT_REVERSE_LIMIT_ROTATIONS;
-        pivotConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        pivotConfig.Slot0.kP = PIVOT_KP;
-        pivotConfig.Slot0.kD = PIVOT_KD;
-
         PhoenixUtil.tryUntilOk(5, () -> rollerLeader.getConfigurator().apply(rollerConfig));
       
         PhoenixUtil.tryUntilOk(5, () -> rollerFollower.getConfigurator().apply(rollerConfig));
-        PhoenixUtil.tryUntilOk(5, () -> pivot.getConfigurator().apply(pivotConfig));
 
         rollerFollower.setControl(new Follower(
                 ROLLER_LEADER_ID,
@@ -109,10 +81,8 @@ public class IntakeIOReal implements IntakeIO {
 
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, rollerSignals);
         BaseStatusSignal.setUpdateFrequencyForAll(50.0, followerSignals);
-        BaseStatusSignal.setUpdateFrequencyForAll(50.0, pivotSignals);
         rollerLeader.optimizeBusUtilization();
         rollerFollower.optimizeBusUtilization();
-        pivot.optimizeBusUtilization();
     }
 
     @Override
@@ -130,25 +100,15 @@ public class IntakeIOReal implements IntakeIO {
         inputs.rollerFollowerStatorCurrentAmps = followerStatorCurrent.getValueAsDouble();
         inputs.rollerFollowerSupplyCurrentAmps = followerSupplyCurrent.getValueAsDouble();
         inputs.rollerFollowerTempCelsius = followerTemp.getValueAsDouble();
-
-        inputs.pivotConnected = BaseStatusSignal.refreshAll(pivotSignals).isOK();
-        inputs.pivotPosition = Rotation2d.fromRotations(pivotPosition.getValueAsDouble());
-        inputs.pivotVelocityRadPerSec = Units.rotationsToRadians(pivotVelocity.getValueAsDouble());
-        inputs.pivotAppliedVolts = pivotAppliedVolts.getValueAsDouble();
-        inputs.pivotStatorCurrentAmps = pivotStatorCurrent.getValueAsDouble();
-        inputs.pivotSupplyCurrentAmps = pivotSupplyCurrent.getValueAsDouble();
-        inputs.pivotTempCelsius = pivotTemp.getValueAsDouble();
     }
 
     @Override
-    public void setIntakeState(double rps, double angle) {
+    public void setIntakeState(double rps) {
         rollerLeader.setControl(control.withVelocity(rps));
-        pivot.setControl(pivotPositionRequest.withPosition(angle / 360.0));
     }
 
     @Override
     public void defaultState() {
         rollerLeader.setControl(neutralRequest);
-        pivot.setControl(neutralRequest);
     }
 }

@@ -118,7 +118,7 @@ public class RobotContainer {
   
   private void configureBindings() {
     /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
-    /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
+    /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS));
     joystick.rightTrigger().whileTrue(drum.setDrumState(() -> SmartDashboard.getNumber("RPS", 0), () -> SmartDashboard.getNumber("Angle Deg", 0)));
 
     joystick.rightBumper().whileTrue(new SequentialCommandGroup(
@@ -133,7 +133,7 @@ public class RobotContainer {
   }
 
   private void registeredNamedCommands() {
-    NamedCommands.registerCommand("intake",intake.setIntake(ROLLER_FOLLOWER_ID, PIVOT_DEPLOYED_ROTATIONS));
+    NamedCommands.registerCommand("intake",intake.setIntake(ROLLER_FOLLOWER_ID));
     NamedCommands.registerCommand("shoot", new SequentialCommandGroup(
       new ParallelRaceGroup(
         drive.pointTowardsPoint(()->getHubLocation().getTranslation(), ()->0, ()->0),
@@ -145,7 +145,7 @@ public class RobotContainer {
         drum.setDrumState(6.7, Rotation2d.fromDegrees(10.0)),
         feeder.feedRun(FEEDER_RPS),
         hoppah.hopRun(),
-        intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS),
+        intake.setIntake(ROLLER_INTAKE_RPS),
         new WaitCommand(2.67))
       )
     );

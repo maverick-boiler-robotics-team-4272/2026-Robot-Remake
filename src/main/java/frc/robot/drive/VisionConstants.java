@@ -24,9 +24,9 @@ public class VisionConstants {
   // Robot to camera transforms
   public static final Transform3d leftCameraTransform = new Transform3d(
       Units.inchesToMeters(12.660),
-      Units.inchesToMeters(-12.289),
+      Units.inchesToMeters(12.289),
       Units.inchesToMeters(14.75), //15.076
-      new Rotation3d(-Math.PI / 2, -Math.PI / 9, 0)); // Left side forward // 20 degrees
+      new Rotation3d(0, -Math.PI / 9, 0)); // Left side forward // 20 degrees
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.2;

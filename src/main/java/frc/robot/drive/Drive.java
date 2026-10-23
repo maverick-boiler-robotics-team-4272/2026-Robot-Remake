@@ -3,6 +3,7 @@ package frc.robot.drive;
 import static frc.robot.drive.VisionConstants.*;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
@@ -217,6 +218,7 @@ public class Drive extends SubsystemBase {
         nodes = Navgrid.getInstance().getSpeedAdjustedNodes(ChassisSpeeds.fromRobotRelativeSpeeds(getState().Speeds, getState().Pose.getRotation()));
 
         Logger.recordOutput("Drive/Assist Nodes", nodes);
+        Logger.recordOutput("Drive/DistanceToHub", swerveInputs.Pose.getTranslation().getDistance(getHubLocation().getTranslation()));
 
         for (int i = 0; i < cameras.length; i++) {
             cameras[i].updateInputs(visionInputsList[i]);

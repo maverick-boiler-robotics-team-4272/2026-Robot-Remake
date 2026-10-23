@@ -210,7 +210,8 @@ public class DrumIOReal implements DrumIO {
     }
 
     @Override
-    public void reset() {
+    public void resetHood() {
+        motorHood.setControl(voltControl.withOutput(-2));
         motorHood.setPosition(0);
         motorL.setControl(voltControl);
     }

@@ -33,7 +33,7 @@ public interface DrumIO {
 
     public default void setDrumState(double rps, Rotation2d ang) {}
 
-    public default void reset() {}
+    public default void resetHood() {}
 
     public default void defaultState () {}
 }

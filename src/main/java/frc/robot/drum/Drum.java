@@ -59,6 +59,6 @@ public class Drum extends SubsystemBase {
     }
 
     public Command resetHood() {
-        return runOnce(() -> io.reset()); //TODO: make reset actually run hood
+        return runOnce(() -> io.resetHood());
     }
 }

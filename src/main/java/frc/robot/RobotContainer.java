@@ -115,6 +115,23 @@ public class RobotContainer {
     intake.setDefaultCommand(intake.defaultCommand());
   }
 
+  
+  private void configureBindings() {
+    /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
+    /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
+    joystick.rightTrigger().whileTrue(drum.setDrumState(() -> SmartDashboard.getNumber("RPS", 0), () -> SmartDashboard.getNumber("Angle Deg", 0)));
+
+    joystick.rightBumper().whileTrue(new SequentialCommandGroup(
+      feeder.feedRun(-FEEDER_RPS * 0.5).withTimeout(0.75),
+      new ParallelCommandGroup(
+        hoppah.hopRun(),
+        drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystick::getLeftX, joystick::getLeftY),
+        feeder.feedRun(FEEDER_RPS)
+      )
+    ));
+    joystick.povLeft().onTrue(drum.resetHood());
+  }
+
   private void registeredNamedCommands() {
     NamedCommands.registerCommand("intake",intake.setIntake(ROLLER_FOLLOWER_ID, PIVOT_DEPLOYED_ROTATIONS));
     NamedCommands.registerCommand("shoot", new SequentialCommandGroup(
@@ -132,17 +149,6 @@ public class RobotContainer {
         new WaitCommand(2.67))
       )
     );
-  }
-
-  private void configureBindings() {
-    /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
-    /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS, PIVOT_DEPLOYED_ROTATIONS));
-    joystick.rightTrigger().whileTrue(drum.setDrumState(100.0, Rotation2d.fromDegrees(30)));
-    joystick.rightBumper().whileTrue(feeder.feedRun(50)); // Changed to negative as a temp fix to cause to spin in the
-                                                           // correct direction --mitchell
-    joystick.a().whileTrue(hoppah.setHoppahState(50, 50));
-    joystick.x().whileTrue(drum.setDrumState(() -> SmartDashboard.getNumber("RPS", 0), () -> SmartDashboard.getNumber("Angle Deg", 0)));
-    joystick.povLeft().onTrue(drum.resetHood());
   }
 
   public Command getAutonomousCommand(){

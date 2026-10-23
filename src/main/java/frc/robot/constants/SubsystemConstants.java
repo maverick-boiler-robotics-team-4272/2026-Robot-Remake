@@ -1,5 +1,8 @@
 package frc.robot.constants;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -7,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.util.PhoenixUtil;
 
@@ -119,7 +123,7 @@ public class SubsystemConstants {
         };
     }
     public static class FeederConstants {
-        public static final double FEEDER_RPS = 50;
+        public static final double FEEDER_RPS = 70;
         
         public static final double FEED_GEARING = 24.0/11.0;
         public static final double FEED_KP = .5;
@@ -161,6 +165,10 @@ public class SubsystemConstants {
         public static final double HOOD_KS = 0.4;
         public static final double HOOD_KV = 0.1243 * HOOD_GEARING;
         public static final boolean HOOD_INVERTED = false;
+
+        public static final InterpolatingDoubleTreeMap SPEED_MAP = InterpolatingDoubleTreeMap.ofEntries(
+            Map.entry(2.77, null)
+        );
         
     }
 }

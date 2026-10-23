@@ -15,6 +15,10 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.controllers.PathFollowingController;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.util.FuelUtil;
@@ -28,6 +32,8 @@ public class Robot extends LoggedRobot {
   public Robot() {
     SimulatedArena.overrideInstance(new Arena2026Rebuilt(false));
     m_robotContainer = new RobotContainer();
+    PathfindingCommand.warmupCommand().schedule();
+    FollowPathCommand.warmupCommand().schedule();
 
     Logger.recordMetadata("CTREIO", "4272"); // Set a metadata value
 

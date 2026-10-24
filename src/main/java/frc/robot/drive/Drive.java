@@ -136,6 +136,10 @@ public class Drive extends SubsystemBase {
         });
     }
 
+    public Command resetGyro() {
+        return defer(() -> runOnce(() -> swerveInputs.Pose = new Pose2d(swerveInputs.Pose.getX(), swerveInputs.Pose.getY(), isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero)));
+    }
+
     public Command joystickDriveWithAssist(DoubleSupplier joystickX, DoubleSupplier joystickY,
             DoubleSupplier joystickTheta) {
         FieldCentric request = new SwerveRequest.FieldCentric()
@@ -191,13 +195,54 @@ public class Drive extends SubsystemBase {
                 () -> run(() -> {
                     Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
 
-                    Rotation2d targetAngle = delta.getAngle();
+                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero); //TODO
+                    Logger.recordOutput("Drive/DesiredAngle", targetAngle.getDegrees());
                     io.setControl(
                             request
                                     .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
                                     .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
                                     .withTargetDirection(targetAngle));
                 }));
+    }
+
+
+    public Command pointTowardsPointInAuto(
+            Supplier<Translation2d> desiredPoint, DoubleSupplier joystickX, DoubleSupplier joystickY) {
+        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
+                .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
+        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
+
+        return defer(
+                () -> run(() -> {
+                    Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
+
+                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.kZero : Rotation2d.kZero); //TODO
+                    Logger.recordOutput("Drive/DesiredAngle", targetAngle.getDegrees());
+                    io.setControl(
+                            request
+                                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                                    .withTargetDirection(targetAngle));
+                }));
+    }
+    public Command pointToAllianceWall(DoubleSupplier joystickX, DoubleSupplier joystickY) {
+        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
+                .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+                .withDeadband(MAX_DRIVE_SPEED * 0.05)
+                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
+        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
+
+        return run(() -> io.setControl(
+                request
+                        .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
+                        .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
+                        .withTargetDirection(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero)));
+    }
+
+    public DoubleSupplier getDistanceToPose(Pose2d pose) {
+        return () -> swerveInputs.Pose.getTranslation().getDistance(pose.getTranslation());
     }
 
     @Override

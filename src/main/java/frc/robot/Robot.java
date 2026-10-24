@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static frc.robot.constants.FieldConstants.isRedSide;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.seasonspecific.evergreen.ArenaEvergreen;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
@@ -19,6 +21,7 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.controllers.PathFollowingController;
 
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.util.FuelUtil;
@@ -34,14 +37,20 @@ public class Robot extends LoggedRobot {
     m_robotContainer = new RobotContainer();
     PathfindingCommand.warmupCommand().schedule();
     FollowPathCommand.warmupCommand().schedule();
+    RobotController.setBrownoutVoltage(6.5);
 
     Logger.recordMetadata("CTREIO", "4272"); // Set a metadata value
 
-    if (!isReal()) {
-        Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
+    if (isReal()) {
+        Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs")); // Log to a USB stick ("/U/logs")
         Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
     } else if(isReal()){
       Logger.addDataReceiver(new NT4Publisher());
+      try {
+        Logger.addDataReceiver(new WPILOGWriter()); 
+      } catch (Exception e) {
+        Logger.addDataReceiver(new WPILOGWriter("/logs"));
+      }
     } else {
         setUseTiming(false); // Run as fast as possible
         String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)

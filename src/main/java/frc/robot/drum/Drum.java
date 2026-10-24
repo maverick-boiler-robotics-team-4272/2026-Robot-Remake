@@ -1,11 +1,15 @@
 package frc.robot.drum;
 
+import static frc.robot.constants.SubsystemConstants.DrumConstants.DRUM_GEARING;
+
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -36,10 +40,10 @@ public class Drum extends SubsystemBase {
         Logger.recordOutput("Drum/Hood Angle", inputs.motorHoodPosition * 360);
     }
 
-    public Command setDrumState(double rps, Rotation2d angle) {
+    public Command setDrumState(double rps, double angleDeg) {
         return runEnd(
             () -> {
-                io.setDrumState(rps, angle);
+                io.setDrumState(rps, Rotation2d.fromDegrees(angleDeg));
             },
             () -> io.defaultState()
         );
@@ -59,6 +63,6 @@ public class Drum extends SubsystemBase {
     }
 
     public Command resetHood() {
-        return runOnce(() -> io.resetHood());
+        return runEnd(() -> io.resetHood(), () -> io.defaultState());
     }
 }

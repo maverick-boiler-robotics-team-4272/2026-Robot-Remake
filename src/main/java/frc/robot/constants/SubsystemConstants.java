@@ -134,21 +134,24 @@ public class SubsystemConstants {
 
     public static class DrumConstants {
         public static final double DRUM_GEARING = 1.0;
-        public static final double DRUM_KP = 0.0;
+        public static final double DRUM_KP = 0.5;
         public static final double DRUM_KD = 0.0;
         public static final double DRUM_KS = 0.16;
         public static final double DRUM_KV = 0.1243 * DRUM_GEARING;
         public static final boolean DRUM_INVERTED = true;
     
         public static final double HOOD_GEARING = 348.0 * 24.0 / (16.0 * 11.0);
-        public static final double HOOD_KP = 100;
+        public static final double HOOD_KP = 60;
         public static final double HOOD_KD = 0.0;
         public static final double HOOD_KS = 0.4;
         public static final double HOOD_KV = 0.1243 * HOOD_GEARING;
         public static final boolean HOOD_INVERTED = false;
 
         public static final InterpolatingDoubleTreeMap SPEED_MAP = InterpolatingDoubleTreeMap.ofEntries(
-            Map.entry(2.77, null)
+            Map.entry(1.86, 37.5), Map.entry(2.46, 39.0), Map.entry(3.1, 44.3), Map.entry(3.48, 46.5)
+        );
+        public static final InterpolatingDoubleTreeMap ANGLE_DEG_MAP = InterpolatingDoubleTreeMap.ofEntries(
+            Map.entry(1.86, 7.0), Map.entry(2.46, 11.0), Map.entry(3.1, 15.0), Map.entry(3.48, 19.0)
         );
         
     }

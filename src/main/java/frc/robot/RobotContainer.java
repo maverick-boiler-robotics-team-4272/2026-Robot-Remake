@@ -5,52 +5,47 @@
 package frc.robot;
 
 import static frc.robot.constants.FieldConstants.isRedSide;
-import static frc.robot.constants.SubsystemConstants.IntakeConstants.*;
-
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.littletonrobotics.junction.Logger;
-import org.opencv.objdetect.CharucoBoard;
-
-import java.io.IOException;
-import java.text.ParseException;
+import static frc.robot.constants.SubsystemConstants.FeederConstants.FEEDER_RPS;
+import static frc.robot.constants.SubsystemConstants.HoppahConstants.HOPPAH_RPS;
+import static frc.robot.constants.SubsystemConstants.IntakeConstants.ROLLER_INTAKE_RPS;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.FileVersionException;
 
-import static frc.robot.constants.FieldConstants.getHubLocation;
-import static frc.robot.constants.SubsystemConstants.FeederConstants.*;
-import static frc.robot.constants.SubsystemConstants.HoppahConstants.*;
-
-import com.google.flatbuffers.Constants;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
-import frc.robot.constants.TunerConstants;
-import frc.robot.constants.SubsystemConstants.DriveConstants;
-import frc.robot.drive.*;
-import frc.robot.hopper.*;
-import frc.robot.intake.*;
-import frc.robot.util.FuelUtil;
-import frc.robot.feeder.*;
-import frc.robot.drum.*;
+import frc.robot.drive.Drive;
+import frc.robot.drive.SwerveIO;
+import frc.robot.drive.SwerveIOCTRE;
+import frc.robot.drive.SwerveIOSim;
+import frc.robot.drive.VisionConstants;
+import frc.robot.drive.VisionIO;
+import frc.robot.drive.VisionIOPhotonVision;
+import frc.robot.drive.VisionIOPhotonVisionSim;
+import frc.robot.drum.Drum;
+import frc.robot.drum.DrumIO;
+import frc.robot.drum.DrumIOReal;
+import frc.robot.drum.DrumIOSim;
+import frc.robot.feeder.Feeder;
+import frc.robot.feeder.FeederIO;
+import frc.robot.feeder.FeederIOReal;
+import frc.robot.feeder.FeederIOSim;
+import frc.robot.hopper.Hoppah;
+import frc.robot.hopper.HoppahIO;
+import frc.robot.hopper.HoppahIOReal;
+import frc.robot.hopper.HoppahIOSim;
+import frc.robot.intake.Intake;
+import frc.robot.intake.IntakeIO;
+import frc.robot.intake.IntakeIOReal;
+import frc.robot.intake.IntakeIOSim;
 
 public class RobotContainer {
   Drive drive;
@@ -60,8 +55,11 @@ public class RobotContainer {
   Intake intake;
   SwerveIOCTRE swerveIO = null;
 
+  private SendableChooser<PathPlannerAuto> autChooser;
+
   private static final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   public static final CommandXboxController joystick = new CommandXboxController(0);
+  public static final CommandXboxController operator = new CommandXboxController(1);
 
   public RobotContainer() {
     switch (FieldConstants.currentMode) {
@@ -99,9 +97,11 @@ public class RobotContainer {
         });
         break;
     }
-    configureBindings();
     setDefaultCommands();
+    configureDriverBindings();
+    configureOperatorBindings();
     registeredNamedCommands();
+    setUpAutos();
 
     SmartDashboard.putNumber("RPS", 30);
     SmartDashboard.putNumber("Angle Deg", 10);
@@ -116,45 +116,55 @@ public class RobotContainer {
   }
 
   
-  private void configureBindings() {
-    /* Reset Heading */ joystick.b().onTrue(drive.runOnce(swerveIO::seedFieldCentric));
+  private void configureDriverBindings() {
+    /* Reset Heading */ joystick.b().onTrue(drive.runOnce(() -> swerveIO.seedFieldCentric()));
     /* Intake */ joystick.leftTrigger().whileTrue(intake.setIntake(ROLLER_INTAKE_RPS));
-    joystick.rightTrigger().whileTrue(drum.setDrumState(() -> SmartDashboard.getNumber("RPS", 0), () -> SmartDashboard.getNumber("Angle Deg", 0)));
+    joystick.leftBumper().whileTrue(intake.setIntake(-ROLLER_INTAKE_RPS));
+    /* Shoot Shooter */ joystick.rightTrigger().whileTrue(RobotCommands.revScoreEditCommand(drive, drum, feeder, hoppah,
+        intake, joystick::getLeftX, joystick::getLeftY, joystick.a()));
+        joystick.x().whileTrue(RobotCommands.revScoreCommand(drive, drum, feeder, hoppah, intake, joystick::getLeftX, joystick::getLeftY, joystick.a()));
+    joystick.rightBumper().whileTrue(RobotCommands.revShuttleCommand(drive, drum, feeder, hoppah, intake,
+        joystick::getLeftX, joystick::getLeftY, joystick.a()));
+    joystick.povLeft().whileTrue(drum.resetHood());
+    joystick.y().whileTrue(drive.applyRequest(() -> brake));
+  }
 
-    joystick.rightBumper().whileTrue(new SequentialCommandGroup(
-      feeder.feedRun(-FEEDER_RPS * 0.5).withTimeout(0.75),
-      new ParallelCommandGroup(
+  private void configureOperatorBindings() {
+    operator.rightTrigger().whileTrue(
+        drum.setDrumState(44.3, 15));
+    operator.rightBumper().whileTrue(drum.setDrumState(100, 30));
+    operator.a().whileTrue(new ParallelCommandGroup(
+        feeder.feedRun(FEEDER_RPS),
         hoppah.hopRun(),
-        drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystick::getLeftX, joystick::getLeftY),
-        feeder.feedRun(FEEDER_RPS)
-      )
-    ));
-    joystick.povLeft().onTrue(drum.resetHood());
+        intake.setIntake(ROLLER_INTAKE_RPS)));
+    // operator.povDownLeft().whileTrue(drum.resetHood());
+    operator.povUp().onTrue(RobotCommands.addAngleAdd());
+    operator.povDown().onTrue(RobotCommands.subtractAngleAdd());
+    operator.povLeft().onTrue(RobotCommands.subtractShooterAdd());
+    operator.povRight().onTrue(RobotCommands.addShooterAdd());
+    operator.y().whileTrue(hoppah.setHoppahState(-HOPPAH_RPS, -HOPPAH_RPS * 0.5));
   }
 
   private void registeredNamedCommands() {
-    NamedCommands.registerCommand("intake",intake.setIntake(ROLLER_FOLLOWER_ID));
-    NamedCommands.registerCommand("shoot", new SequentialCommandGroup(
-      new ParallelRaceGroup(
-        drive.pointTowardsPoint(()->getHubLocation().getTranslation(), ()->0, ()->0),
-        drum.setDrumState(6.7, Rotation2d.fromDegrees(10.0)),
-        feeder.feedRun(-26.7),
-        new WaitCommand(0.75)),
-      new ParallelRaceGroup(
-        drive.applyRequest(()->brake),
-        drum.setDrumState(6.7, Rotation2d.fromDegrees(10.0)),
-        feeder.feedRun(FEEDER_RPS),
-        hoppah.hopRun(),
-        intake.setIntake(ROLLER_INTAKE_RPS),
-        new WaitCommand(2.67))
-      )
+    NamedCommands.registerCommand("intake", intake.setIntake(ROLLER_INTAKE_RPS));
+    NamedCommands.registerCommand("shoot",
+        RobotCommands.autoScoreCommand(drive, drum, feeder, hoppah, intake, 0.5, 2)
     );
+  }
+
+  private void setUpAutos() {
+    autChooser = new SendableChooser<PathPlannerAuto>();
+    autChooser.setDefaultOption("2.5 Left Close", new PathPlannerAuto("2.5 pass close", false));
+    autChooser.addOption("2.5 Left Far", new PathPlannerAuto("2.5 pass far", false));
+    autChooser.addOption("2.5 Right Close", new PathPlannerAuto("2.5 pass close", true));
+    autChooser.addOption("2.5 Right Far", new PathPlannerAuto("2.5 pass far", true));
+
+    SmartDashboard.putData("Auto", autChooser);
   }
 
   public Command getAutonomousCommand(){
     try {
-      // Load the named auto so its resetOdom setting and any auto-level commands run.
-      return new PathPlannerAuto("2.5 pass far");
+      return autChooser.getSelected();
     } catch (Exception ex) {
       return Commands.print("Big oops: " + ex.getMessage());
     }

@@ -137,7 +137,7 @@ public class Drive extends SubsystemBase {
     }
 
     public Command resetGyro() {
-        return defer(() -> runOnce(() -> swerveInputs.Pose = new Pose2d(swerveInputs.Pose.getX(), swerveInputs.Pose.getY(), isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero)));
+        return runOnce(() -> io.resetHeading());
     }
 
     public Command joystickDriveWithAssist(DoubleSupplier joystickX, DoubleSupplier joystickY,
@@ -194,32 +194,12 @@ public class Drive extends SubsystemBase {
         return defer(
                 () -> run(() -> {
                     Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
+                    Rotation2d fieldAngle = delta.getAngle();
 
-                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero); //TODO
-                    Logger.recordOutput("Drive/DesiredAngle", targetAngle.getDegrees());
-                    io.setControl(
-                            request
-                                    .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
-                                    .withVelocityY(-joystickX.getAsDouble() * MAX_DRIVE_SPEED)
-                                    .withTargetDirection(targetAngle));
-                }));
-    }
-
-
-    public Command pointTowardsPointInAuto(
-            Supplier<Translation2d> desiredPoint, DoubleSupplier joystickX, DoubleSupplier joystickY) {
-        FieldCentricFacingAngle request = new SwerveRequest.FieldCentricFacingAngle()
-                .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
-                .withDeadband(MAX_DRIVE_SPEED * 0.05)
-                .withRotationalDeadband(MAX_ROTATIONAL_RATE * 0.05);
-        request.withHeadingPID(ROTATION_P, ROTATION_I, ROTATION_D);
-
-        return defer(
-                () -> run(() -> {
-                    Translation2d delta = desiredPoint.get().minus(getState().Pose.getTranslation());
-
-                    Rotation2d targetAngle = delta.getAngle().plus(isRedSide() ? Rotation2d.kZero : Rotation2d.kZero); //TODO
-                    Logger.recordOutput("Drive/DesiredAngle", targetAngle.getDegrees());
+                    // TargetDirection is relative to the operator perspective (see periodic), so convert
+                    // the blue-origin field angle into that frame by undoing the 180 on red.
+                    Rotation2d targetAngle = fieldAngle.plus(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
+                    Logger.recordOutput("Drive/DesiredAngle", fieldAngle.getDegrees());
                     io.setControl(
                             request
                                     .withVelocityX(-joystickY.getAsDouble() * MAX_DRIVE_SPEED)
@@ -247,6 +227,9 @@ public class Drive extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Driver-relative "forward" points away from our alliance wall, so seedFieldCentric() and
+        // field-centric requests stay correct on red.
+        io.setOperatorPerspectiveForward(isRedSide() ? Rotation2d.k180deg : Rotation2d.kZero);
         io.updateSwerveInputs(swerveInputs);
         io.updateModuleInputs(moduleInputs);
         io.logModules(swerveInputs);

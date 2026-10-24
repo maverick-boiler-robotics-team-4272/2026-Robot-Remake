@@ -67,6 +67,8 @@ public interface SwerveIO {
 
     default void resetHeading() {}
 
+    default void setOperatorPerspectiveForward(Rotation2d fieldDirection) {}
+
     default void setStatorCurrentLimit(double limit) {}
 
     default void setSupplyCurrentLimit(double limit) {}

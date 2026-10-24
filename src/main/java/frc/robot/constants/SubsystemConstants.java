@@ -138,7 +138,7 @@ public class SubsystemConstants {
         public static final double DRUM_KD = 0.0;
         public static final double DRUM_KS = 0.16;
         public static final double DRUM_KV = 0.1243 * DRUM_GEARING;
-        public static final boolean DRUM_INVERTED = true;
+        public static final boolean DRUM_INVERTED = false; // was true but never applied (config bug), so false keeps the current spin direction
     
         public static final double HOOD_GEARING = 348.0 * 24.0 / (16.0 * 11.0);
         public static final double HOOD_KP = 60;

@@ -173,6 +173,11 @@ public class SwerveIOCTRE extends TunerSwerveDrivetrain implements SwerveIO {
     }
 
     @Override
+    public void setOperatorPerspectiveForward(Rotation2d fieldDirection) {
+        super.setOperatorPerspectiveForward(fieldDirection);
+    }
+
+    @Override
     public void setStatorCurrentLimit(double limit) {
         Stream.of(getModules()).map(SwerveModule::getDriveMotor).forEach(motor -> {
             final TalonFXConfiguration config = new TalonFXConfiguration();

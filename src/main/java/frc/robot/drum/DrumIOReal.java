@@ -93,8 +93,7 @@ public class DrumIOReal implements DrumIO {
             drumConfig.withSlot0(drumSlot0Configs);
             drumConfig.withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(DRUM_GEARING));
             drumConfig.withMotorOutput(new MotorOutputConfigs()
-                .withInverted(DRUM_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive));
-            drumConfig.withMotorOutput(new MotorOutputConfigs()
+                .withInverted(DRUM_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive)
                 .withNeutralMode(NeutralModeValue.Coast));
 
         var hoodConfig = new TalonFXConfiguration();

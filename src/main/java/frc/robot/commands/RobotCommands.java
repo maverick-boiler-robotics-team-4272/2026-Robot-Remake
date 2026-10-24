@@ -32,7 +32,7 @@ public class RobotCommands {
             drum.setDrumState(() -> SPEED_MAP.get(drive.getDistanceToPose(getHubLocation()).getAsDouble()), () -> ANGLE_DEG_MAP.get(drive.getDistanceToPose(getHubLocation()).getAsDouble())),
             new SequentialCommandGroup(
                 new ParallelRaceGroup(
-                    drive.pointTowardsPointInAuto(() -> getHubLocation().getTranslation(), joystickX, joystickY),
+                    drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystickX, joystickY),
                     feeder.feedRun(-FEEDER_RPS),
                     hop.setHoppahState(-HOPPAH_RPS, -HOPPAH_RPS),
                     new WaitUntilCommand(trigger)
@@ -41,7 +41,7 @@ public class RobotCommands {
                     feeder.feedRun(FEEDER_RPS),
                     hop.hopRun(),
                     intake.setIntake(ROLLER_INTAKE_RPS),
-                    drive.pointTowardsPointInAuto(() -> getHubLocation().getTranslation(), joystickX, joystickY)
+                    drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), joystickX, joystickY)
                 )
                 
             )
@@ -78,7 +78,7 @@ public class RobotCommands {
                 new ParallelRaceGroup(
                     feeder.feedRun(-FEEDER_RPS),
                     hop.setHoppahState(-HOPPAH_RPS, -HOPPAH_RPS),
-                    drive.pointTowardsPointInAuto(() -> getHubLocation().getTranslation(), () -> 0, () -> 0),
+                    drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), () -> 0, () -> 0),
                     new WaitCommand(revTime)
                 ),
                 new ParallelRaceGroup(
@@ -86,7 +86,7 @@ public class RobotCommands {
                         feeder.feedRun(FEEDER_RPS),
                         hop.hopRun(),
                         intake.setIntake(ROLLER_INTAKE_RPS),
-                        drive.pointTowardsPointInAuto(() -> getHubLocation().getTranslation(), () -> 0, () -> 0)
+                        drive.pointTowardsPoint(() -> getHubLocation().getTranslation(), () -> 0, () -> 0)
                     ),
                     new WaitCommand(shootTime)
                 )
